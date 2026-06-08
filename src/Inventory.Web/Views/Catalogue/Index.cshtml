@@ -24,7 +24,7 @@
             <div class="col-md-4 col-sm-6">
                 <input name="search"
                        class="form-control"
-                       placeholder="Search code or name..."
+                       placeholder="Search name..."
                        value="@ViewBag.Search" />
             </div>
 
@@ -48,9 +48,8 @@
 
                 <thead class="table-dark">
                     <tr>
-                        <th>Code</th>
                         <th>Name</th>
-                        <th>Packing</th>
+                        <th>Price</th>
                         <th>Stock</th>
                         <th>Remark</th>
                         <th class="text-center" width="180">Actions</th>
@@ -63,12 +62,15 @@
                         foreach (var item in Model.Items)
                         {
                             <tr>
-                                <td>@item.Code</td>
                                 <td>@item.Name</td>
-                                <td>@item.Packing</td>
+                                <td>@item.Price?.ToString("0.##")</td>
 
                                 <td>
-                                    <span class="badge @(item.Stock < 10 ? "bg-danger" : "bg-success")">
+                                    <span class="badge @(item.Stock < 10 ? "bg-danger" : "bg-success") stock-badge"
+                                          style="cursor:pointer;"
+                                          data-id="@item.Id"
+                                          data-name="@item.Name"
+                                          title="Click to add stock">
                                         @item.Stock
                                     </span>
                                 </td>
@@ -97,7 +99,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
+                            <td colspan="5" class="text-center text-muted py-4">
                                 No catalogue items found
                             </td>
                         </tr>
@@ -154,3 +156,72 @@
     </div>
 
 </div>
+
+<!-- Add Stock Modal -->
+<div class="modal fade" id="addStockModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title">Add Stock — <span id="modalCatName"></span></h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Date</label>
+                    <input type="date" id="stockDate" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Quantity</label>
+                    <input type="number" id="stockQty" class="form-control" min="1" placeholder="Enter quantity" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary btn-sm" id="btnSaveStock">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let activeCatalogueId = 0;
+
+    document.querySelectorAll('.stock-badge').forEach(badge => {
+        badge.addEventListener('click', () => {
+            activeCatalogueId = parseInt(badge.dataset.id);
+            document.getElementById('modalCatName').textContent = badge.dataset.name;
+            document.getElementById('stockDate').value = new Date().toISOString().slice(0, 10);
+            document.getElementById('stockQty').value = '';
+            new bootstrap.Modal(document.getElementById('addStockModal')).show();
+        });
+    });
+
+    document.getElementById('btnSaveStock').addEventListener('click', async () => {
+        const date = document.getElementById('stockDate').value;
+        const qty  = parseInt(document.getElementById('stockQty').value);
+        if (!date || !qty || qty < 1) { alert('Please enter a valid quantity.'); return; }
+
+        const btn = document.getElementById('btnSaveStock');
+        btn.disabled = true; btn.textContent = '...';
+        try {
+            const res  = await fetch('/Catalogue/AddStock', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ catalogueId: activeCatalogueId, quantity: qty, date: date })
+            });
+            const json = await res.json();
+            if (json.success) {
+                bootstrap.Modal.getInstance(document.getElementById('addStockModal')).hide();
+                location.reload();
+            } else {
+                alert('Error: ' + (json.error ?? 'Unknown'));
+            }
+        } catch (e) {
+            alert('Network error: ' + e.message);
+        } finally {
+            btn.disabled = false; btn.textContent = 'Save';
+        }
+    });
+</script>
+}

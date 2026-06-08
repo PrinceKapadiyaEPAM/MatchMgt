@@ -1,4 +1,11 @@
-﻿<!DOCTYPE html>
+﻿@using Inventory.Domain.Constants
+@inject Inventory.Infrastructure.Services.IPermissionService PermissionService
+@{
+    var viewable = User.Identity?.IsAuthenticated == true
+        ? await PermissionService.GetMenuVisibleModulesAsync(User)
+        : new HashSet<string>();
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -64,33 +71,73 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Catalogue" asp-action="Index">Catalogue</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Inventory" asp-action="Index">Transaction</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Party" asp-action="Index">Party</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Design" asp-action="Index">Design</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Program" asp-action="Index">Program</a>
-                        </li>
-                        @if (User.IsInRole("Admin"))
+                        @if (viewable.Contains(AppModules.Catalogue))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Company" asp-action="Index">Company Profile</a>
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Catalogue" asp-action="Index">Catalogue</a>
+                            </li>
+                        }
+                        @if (viewable.Contains(AppModules.Inventory))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Inventory" asp-action="Index">Transaction</a>
+                            </li>
+                        }
+                        @if (viewable.Contains(AppModules.Party))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Party" asp-action="Index">Party</a>
+                            </li>
+                        }
+                        @if (viewable.Contains(AppModules.Design))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Design" asp-action="Index">Design</a>
+                            </li>
+                        }
+                        @if (viewable.Contains(AppModules.Program))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Program" asp-action="Index">Program</a>
+                            </li>
+                        }
+                        @if (viewable.Contains(AppModules.Dispatch))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link text-dark dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Dispatch</a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" asp-area="" asp-controller="Dispatch" asp-action="AddDispatch">Add Dispatch</a></li>
+                                    <li><a class="dropdown-item" asp-area="" asp-controller="Dispatch" asp-action="Index">Dispatch Register</a></li>
+                                </ul>
+                            </li>
+                        }
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link text-dark dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Admin</a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" asp-area="" asp-controller="Users" asp-action="Index">Users</a></li>
+                                    <li><a class="dropdown-item" asp-area="" asp-controller="Roles" asp-action="Index">Roles</a></li>
+                                    <li><a class="dropdown-item" asp-area="" asp-controller="Permissions" asp-action="Index">Permissions</a></li>
+                                    <li><a class="dropdown-item" asp-area="" asp-controller="Menu" asp-action="Index">Menu Visibility</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" asp-area="" asp-controller="Company" asp-action="Index">Company Profile</a></li>
+                                </ul>
                             </li>
                         }
                     </ul>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post" class="d-flex align-items-center ms-2">
+                            <span class="me-2 text-muted small">@User.Identity.Name</span>
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">Logout</button>
+                        </form>
+                    }
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
+    <div class="container-fluid">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>

@@ -19,4 +19,7 @@ public interface IUserRoleService
 
     Task<IdentityResult> AddUserToRoleAsync(ApplicationUser user, string role);
     Task<IdentityResult> RemoveUserFromRoleAsync(ApplicationUser user, string role);
+
+    Task<ApplicationUser?> FindUserByEmailAsync(string email);
+    Task<IList<IdentityRole>> GetAllRolesAsync();
 }

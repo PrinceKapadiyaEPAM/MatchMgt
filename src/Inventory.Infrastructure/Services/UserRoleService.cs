@@ -91,4 +91,11 @@ public class UserRoleService : IUserRoleService
     {
         return _userManager.RemoveFromRoleAsync(user, role);
     }
+
+    public Task<ApplicationUser?> FindUserByEmailAsync(string email) => _userManager.FindByEmailAsync(email);
+
+    public async Task<IList<IdentityRole>> GetAllRolesAsync()
+    {
+        return await _roleManager.Roles.ToListAsync();
+    }
 }

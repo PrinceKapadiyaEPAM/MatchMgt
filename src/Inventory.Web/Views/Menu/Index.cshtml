@@ -1,0 +1,76 @@
+@model Inventory.Domain.ViewModels.MenuVisibilityVM
+@{
+    ViewData["Title"] = "Menu Visibility";
+    var allRoles     = ViewBag.AllRoles     as List<string> ?? new List<string>();
+    var selectedRole = ViewBag.SelectedRole as string ?? string.Empty;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Menu Visibility</h4>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card shadow-sm">
+    <div class="card-header p-0">
+        <ul class="nav nav-tabs card-header-tabs" id="roleTabs">
+            @foreach (var role in allRoles)
+            {
+                <li class="nav-item">
+                    <a class="nav-link @(role == selectedRole ? "active" : "")"
+                       href="@Url.Action("Index", "Menu", new { role })">@role</a>
+                </li>
+            }
+        </ul>
+    </div>
+
+    <div class="card-body">
+        <form asp-action="Save" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="RoleName" value="@Model.RoleName" />
+
+            <p class="text-muted small mb-3">
+                Toggle which nav items are visible for the <strong>@Model.RoleName</strong> role.
+                This is independent of View/Edit/Delete permissions.
+            </p>
+
+            <table class="table table-bordered align-middle" style="max-width:400px;">
+                <thead class="table-light">
+                    <tr>
+                        <th>Module</th>
+                        <th class="text-center">Show in Menu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.Items.Count; i++)
+                    {
+                        <tr>
+                            <td>
+                                <input type="hidden" name="Items[@i].Module" value="@Model.Items[i].Module" />
+                                @Model.Items[i].Module
+                            </td>
+                            <td class="text-center">
+                                <div class="form-check form-switch d-inline-block mb-0">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="Items[@i].IsMenuVisible" value="true"
+                                           @(Model.Items[i].IsMenuVisible ? "checked" : "")
+                                           role="switch" />
+                                </div>
+                                <input type="hidden" name="Items[@i].IsMenuVisible" value="false" />
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a asp-action="Index" asp-route-role="@Model.RoleName" class="btn btn-secondary ms-1">Cancel</a>
+        </form>
+    </div>
+</div>

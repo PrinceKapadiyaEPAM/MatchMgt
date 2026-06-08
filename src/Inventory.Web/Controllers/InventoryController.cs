@@ -1,7 +1,9 @@
 ﻿namespace Inventory.Web.Controllers;
 
+using Inventory.Domain.Constants;
 using Inventory.Domain.Entities;
 using Inventory.Infrastructure;
+using Inventory.Web.Filters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +18,7 @@ public class InventoryController : Controller
         _db = db;
     }
 
+    [RequirePermission(AppModules.Inventory, "View")]
     public async Task<IActionResult> Index(string? search, TransactionType? type, int? catalogueId, int page = 1, int pageSize = 10)
     {
         var query = _db.InventoryTransactions
@@ -24,7 +27,7 @@ public class InventoryController : Controller
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            query = query.Where(t => t.Catalogue.Name.Contains(search) || t.Catalogue.Code.Contains(search));
+            query = query.Where(t => t.Catalogue.Name.Contains(search));
         }
 
         if (type.HasValue)
@@ -57,6 +60,7 @@ public class InventoryController : Controller
     }
 
     // CREATE GET
+    [RequirePermission(AppModules.Inventory, "View")]
     public IActionResult Create()
     {
         ViewBag.Catalogues = _db.Catalogues.ToList();
@@ -66,6 +70,7 @@ public class InventoryController : Controller
     // CREATE POST
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [RequirePermission(AppModules.Inventory, "Edit")]
     public async Task<IActionResult> Create(InventoryTransaction model)
     {
         if (!ModelState.IsValid)
@@ -84,6 +89,7 @@ public class InventoryController : Controller
     }
 
     // DELETE
+    [RequirePermission(AppModules.Inventory, "View")]
     public async Task<IActionResult> Delete(int id)
     {
         var item = await _db.InventoryTransactions
@@ -95,6 +101,7 @@ public class InventoryController : Controller
 
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
+    [RequirePermission(AppModules.Inventory, "Delete")]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         var item = await _db.InventoryTransactions.FindAsync(id);

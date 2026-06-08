@@ -18,13 +18,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ProgramEntry> Program => Set<ProgramEntry>();
     public DbSet<ProgramMatching> ProgramMatchings => Set<ProgramMatching>();
     public DbSet<CompanyProfile> CompanyProfile => Set<CompanyProfile>();
+    public DbSet<DispatchEntry> DispatchEntries => Set<DispatchEntry>();
+    public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
-        builder.Entity<Catalogue>()
-            .HasIndex(x => x.Code)
-            .IsUnique();
     }
 }

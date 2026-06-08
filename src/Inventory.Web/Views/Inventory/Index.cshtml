@@ -25,7 +25,7 @@
                 <label class="form-label fw-semibold">Search</label>
                 <input name="search"
                        class="form-control"
-                       placeholder="Search Catalogue code or name..."
+                       placeholder="Search Catalogue name..."
                        value="@ViewBag.Search" />
             </div>
 
@@ -75,7 +75,6 @@
 
                 <thead class="table-dark">
                     <tr>
-                        <th>Code</th>
                         <th>Catalogue</th>
                         <th>Type</th>
                         <th>Qty</th>
@@ -91,7 +90,6 @@
                         foreach (var item in Model.Items)
                         {
                             <tr>
-                                <td>@item.Catalogue.Code</td>
                                 <td>@item.Catalogue.Name</td>
 
                                 <td>

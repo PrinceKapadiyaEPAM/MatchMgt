@@ -1,0 +1,230 @@
+@model Inventory.Domain.ViewModels.PaginatedList<Inventory.Domain.Entities.DispatchEntry>
+@using Inventory.Domain.Entities
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Dispatch Register";
+
+    var catalogueList = ViewBag.CatalogueList as List<Catalogue> ?? new List<Catalogue>();
+    var partyList     = ViewBag.PartyList     as List<Party>     ?? new List<Party>();
+
+    var catalogueMap = catalogueList.ToDictionary(c => c.Id, c => c.Name);
+    var partyMap     = partyList.ToDictionary(p => p.PartyId, p => p.PartyName);
+
+    int?   selCatId   = ViewBag.CatFilter   as int?;
+    int?   selPartyId = ViewBag.PartyFilter as int?;
+    string selStatus  = ViewBag.StatusFilter as string ?? "";
+
+    var filterCatalogueHtml = "<option value=\"\">All</option>" +
+        string.Join("", catalogueList.Select(c =>
+            $"<option value=\"{c.Id}\"{(selCatId == c.Id ? " selected" : "")}>{System.Net.WebUtility.HtmlEncode(c.Name)}</option>"));
+
+    var filterPartyHtml = "<option value=\"\">All</option>" +
+        string.Join("", partyList.Select(p =>
+            $"<option value=\"{p.PartyId}\"{(selPartyId == p.PartyId ? " selected" : "")}>{System.Net.WebUtility.HtmlEncode(p.PartyName)}</option>"));
+
+    static string StatusOpt(string v, string label, string sel) =>
+        $"<option value=\"{v}\"{(sel == v ? " selected" : "")}>{label}</option>";
+    var filterStatusHtml = "<option value=\"\">All</option>" +
+        StatusOpt("Ok", "Ok", selStatus) +
+        StatusOpt("Pending", "Pending", selStatus) +
+        StatusOpt("Cancelled", "Cancelled", selStatus);
+
+    string NextDir(string col) =>
+        (string)(ViewBag.SortBy ?? "") == col && (string)(ViewBag.SortDir ?? "") == "desc" ? "asc" : "desc";
+    string Arrow(string col) =>
+        (string)(ViewBag.SortBy ?? "") == col
+            ? ((string)(ViewBag.SortDir ?? "") == "asc" ? " ▲" : " ▼")
+            : "";
+
+    string RowClass(string status) => status switch {
+        "Ok"        => "status-ok",
+        "Cancelled" => "status-cancelled",
+        _           => "status-pending"
+    };
+}
+
+<style>
+    .register-title { background:#70ad47; color:white; font-size:20px; font-weight:bold; text-align:center; padding:8px; border-radius:4px 4px 0 0; }
+    .table-container { background:white; overflow-x:auto; border:1px solid #dee2e6; border-top:none; }
+    #dispatchTable { min-width:1800px; margin-bottom:0; }
+    #dispatchTable th { background:#d9ead3; text-align:center; vertical-align:middle; white-space:nowrap; font-size:13px; padding:5px 4px; }
+    #dispatchTable th a { color:inherit; text-decoration:none; }
+    #dispatchTable th a:hover { text-decoration:underline; }
+    #dispatchTable td { font-size:13px; padding:3px 6px !important; vertical-align:middle; white-space:nowrap; }
+    .status-ok { background:#d4edda !important; }
+    .status-pending { background:#fff3cd !important; }
+    .status-cancelled { background:#f8d7da !important; }
+</style>
+
+<!-- Filter bar -->
+<form method="get" class="row g-2 mb-2 align-items-end">
+    <input type="hidden" name="sortBy"   value="@ViewBag.SortBy" />
+    <input type="hidden" name="sortDir"  value="@ViewBag.SortDir" />
+    <input type="hidden" name="pageSize" value="@ViewBag.PageSize" />
+
+    <div class="col-auto">
+        <label class="form-label form-label-sm mb-0">From</label>
+        <input type="date" name="dateFrom" class="form-control form-control-sm" value="@ViewBag.DateFrom" />
+    </div>
+    <div class="col-auto">
+        <label class="form-label form-label-sm mb-0">To</label>
+        <input type="date" name="dateTo" class="form-control form-control-sm" value="@ViewBag.DateTo" />
+    </div>
+    <div class="col-auto">
+        <label class="form-label form-label-sm mb-0">Catalogue</label>
+        <select name="catalogueId" class="form-select form-select-sm">@Html.Raw(filterCatalogueHtml)</select>
+    </div>
+    <div class="col-auto">
+        <label class="form-label form-label-sm mb-0">Party</label>
+        <select name="partyId" class="form-select form-select-sm">@Html.Raw(filterPartyHtml)</select>
+    </div>
+    <div class="col-auto">
+        <label class="form-label form-label-sm mb-0">Status</label>
+        <select name="status" class="form-select form-select-sm">@Html.Raw(filterStatusHtml)</select>
+    </div>
+    <div class="col-auto">
+        <label class="form-label form-label-sm mb-0">Search</label>
+        <input type="text" name="search" class="form-control form-control-sm" placeholder="Agent / Station / Transport / Bale No" value="@ViewBag.Search" style="min-width:220px;" />
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-primary btn-sm">Search</button>
+        <a asp-action="Index" class="btn btn-secondary btn-sm ms-1">Reset</a>
+        <a asp-action="AddDispatch" class="btn btn-success btn-sm ms-1">+ Add Dispatch</a>
+    </div>
+</form>
+
+<div class="register-title">SAREE DISPATCH REGISTER</div>
+<div class="table-container">
+    <table id="dispatchTable" class="table table-bordered table-sm mb-0">
+        <thead>
+            <tr>
+                <th>
+                    <a asp-action="Index"
+                       asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.StatusFilter"
+                       asp-route-partyId="@ViewBag.PartyFilter" asp-route-catalogueId="@ViewBag.CatFilter"
+                       asp-route-dateFrom="@ViewBag.DateFrom" asp-route-dateTo="@ViewBag.DateTo"
+                       asp-route-sortBy="date" asp-route-sortDir="@NextDir("date")"
+                    asp-route-pageSize="@ViewBag.PageSize">Date@{
+                                Html.Raw(Arrow("date"));
+                            }</a>
+                    </th>
+                <th>Catalogue</th><th>Fold</th><th>Agent</th><th>To Party</th>
+                <th>From</th><th>Transport</th><th>Station</th>
+                <th>Bale</th><th>Remark</th>
+                <th>
+                    <a asp-action="Index"
+                       asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.StatusFilter"
+                       asp-route-partyId="@ViewBag.PartyFilter" asp-route-catalogueId="@ViewBag.CatFilter"
+                       asp-route-dateFrom="@ViewBag.DateFrom" asp-route-dateTo="@ViewBag.DateTo"
+                       asp-route-sortBy="qty" asp-route-sortDir="@NextDir("qty")"
+                        asp-route-pageSize="@ViewBag.PageSize">Qty@{
+                                Html.Raw(Arrow("qty"));
+                            }
+                                </a>
+                                </th>
+                <th>Bale No.</th><th>Price</th>
+                <th>
+                    <a asp-action="Index"
+                       asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.StatusFilter"
+                       asp-route-partyId="@ViewBag.PartyFilter" asp-route-catalogueId="@ViewBag.CatFilter"
+                       asp-route-dateFrom="@ViewBag.DateFrom" asp-route-dateTo="@ViewBag.DateTo"
+                       asp-route-sortBy="status" asp-route-sortDir="@NextDir("status")"
+                        asp-route-pageSize="@ViewBag.PageSize">Status@{
+                                Html.Raw(Arrow("status"));
+                            }
+                                </a>
+                                </th>
+                <th style="min-width:60px;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var e in Model.Items)
+            {
+                <tr class="@RowClass(e.Status)">
+                    <td>@e.Date.ToString("dd-MM-yyyy")</td>
+                    <td>@(e.CatalogueId.HasValue && catalogueMap.TryGetValue(e.CatalogueId.Value, out var catName) ? catName : "")</td>
+                    <td>@e.Fold</td>
+                    <td>@e.Agent</td>
+                    <td>@(e.ToPartyId.HasValue && partyMap.TryGetValue(e.ToPartyId.Value, out var partyName) ? partyName : "")</td>
+                    <td>@e.From</td>
+                    <td>@e.Transport</td>
+                    <td>@e.Station</td>
+                    <td>@e.Bale</td>
+                    <td>@e.Remark</td>
+                    <td>@e.Qty</td>
+                    <td>@e.BaleNo</td>
+                    <td>@e.Price?.ToString("0.##")</td>
+                    <td>@e.Status</td>
+                    <td class="text-center">
+                        <a class="btn btn-warning btn-sm px-2 py-0"
+                           asp-action="AddDispatch" asp-route-date="@e.Date.ToString("yyyy-MM-dd")">Edit</a>
+                        <button class="btn btn-danger btn-sm px-2 py-0 btn-delete" data-id="@e.Id">Del</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+<div class="mt-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <small class="text-muted">
+        @{
+            var start = (Model.PageIndex - 1) * Model.PageSize + 1;
+            var end   = Math.Min(Model.PageIndex * Model.PageSize, Model.TotalCount);
+        }
+        Showing @start–@end of @Model.TotalCount entries
+    </small>
+    <nav>
+        <ul class="pagination pagination-sm mb-0">
+            <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                <a class="page-link" asp-action="Index"
+                   asp-route-page="@(Model.PageIndex - 1)"
+                   asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.StatusFilter"
+                   asp-route-partyId="@ViewBag.PartyFilter" asp-route-catalogueId="@ViewBag.CatFilter"
+                   asp-route-dateFrom="@ViewBag.DateFrom" asp-route-dateTo="@ViewBag.DateTo"
+                   asp-route-sortBy="@ViewBag.SortBy" asp-route-sortDir="@ViewBag.SortDir"
+                   asp-route-pageSize="@ViewBag.PageSize">«</a>
+            </li>
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                    <a class="page-link" asp-action="Index"
+                       asp-route-page="@i"
+                       asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.StatusFilter"
+                       asp-route-partyId="@ViewBag.PartyFilter" asp-route-catalogueId="@ViewBag.CatFilter"
+                       asp-route-dateFrom="@ViewBag.DateFrom" asp-route-dateTo="@ViewBag.DateTo"
+                       asp-route-sortBy="@ViewBag.SortBy" asp-route-sortDir="@ViewBag.SortDir"
+                       asp-route-pageSize="@ViewBag.PageSize">@i</a>
+                </li>
+            }
+            <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                <a class="page-link" asp-action="Index"
+                   asp-route-page="@(Model.PageIndex + 1)"
+                   asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.StatusFilter"
+                   asp-route-partyId="@ViewBag.PartyFilter" asp-route-catalogueId="@ViewBag.CatFilter"
+                   asp-route-dateFrom="@ViewBag.DateFrom" asp-route-dateTo="@ViewBag.DateTo"
+                   asp-route-sortBy="@ViewBag.SortBy" asp-route-sortDir="@ViewBag.SortDir"
+                   asp-route-pageSize="@ViewBag.PageSize">»</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+@section Scripts {
+<script>
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (!confirm('Delete this row?')) return;
+            const id  = parseInt(btn.dataset.id);
+            const res  = await fetch('/Dispatch/DeleteRow', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(id)
+            });
+            const json = await res.json();
+            if (json.success) btn.closest('tr').remove(); else alert('Delete failed.');
+        });
+    });
+</script>
+}

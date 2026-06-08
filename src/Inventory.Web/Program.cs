@@ -23,8 +23,17 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 builder.Services.AddRazorPages();
 builder.Services.AddControllersWithViews();
-// User and role management service
+// User and role management services
 builder.Services.AddScoped<IUserRoleService, UserRoleService>();
+builder.Services.AddScoped<IUserManagementService, UserManagementService>();
+
+// Permission services
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<Inventory.Infrastructure.Repositories.IRolePermissionRepository,
+                           Inventory.Infrastructure.Repositories.RolePermissionRepository>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
+builder.Services.AddScoped<IPermissionManagementService, PermissionManagementService>();
+builder.Services.AddScoped<IMenuVisibilityService, MenuVisibilityService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

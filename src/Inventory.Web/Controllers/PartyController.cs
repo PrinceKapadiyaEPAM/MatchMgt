@@ -1,5 +1,7 @@
-﻿using Inventory.Domain.Entities;
+﻿using Inventory.Domain.Constants;
+using Inventory.Domain.Entities;
 using Inventory.Infrastructure;
+using Inventory.Web.Filters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +21,7 @@ namespace Inventory.Web.Controllers
 
 
         #region Index
+        [RequirePermission(AppModules.Party, "View")]
         public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
         {
             var query = _db.Party.AsQueryable();
@@ -37,6 +40,7 @@ namespace Inventory.Web.Controllers
 
 
         #region AddEdit
+        [RequirePermission(AppModules.Party, "View")]
         public async Task<IActionResult> AddEdit(int? id)
         {
             ViewBag.Action = "Create";
@@ -60,6 +64,7 @@ namespace Inventory.Web.Controllers
         #region Save
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequirePermission(AppModules.Party, "Edit")]
         public async Task<IActionResult> Save(Party model)
         {
             if (!ModelState.IsValid)
@@ -93,6 +98,7 @@ namespace Inventory.Web.Controllers
 
 
         #region Delete
+        [RequirePermission(AppModules.Party, "Delete")]
         public async Task<IActionResult> Delete(int id)
         {
             var item = await _db.Party.FindAsync(id);

@@ -1,52 +1,62 @@
-﻿namespace Inventory.Web.Controllers;
+namespace Inventory.Web.Controllers;
 
-using Inventory.Infrastructure.Entities;
+using Inventory.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 [Authorize(Roles = "Admin")]
 public class RolesController : Controller
 {
-    private readonly RoleManager<IdentityRole> _roleManager;
-    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IUserRoleService _userRoleService;
 
-    public RolesController(
-        RoleManager<IdentityRole> roleManager,
-        UserManager<ApplicationUser> userManager)
+    public RolesController(IUserRoleService userRoleService)
     {
-        _roleManager = roleManager;
-        _userManager = userManager;
+        _userRoleService = userRoleService;
     }
 
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
-        return View(_roleManager.Roles.ToList());
+        var roles = await _userRoleService.GetAllRolesAsync();
+        return View(roles);
     }
 
     public IActionResult Create() => View();
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(string roleName)
     {
         if (!string.IsNullOrWhiteSpace(roleName))
-            await _roleManager.CreateAsync(new IdentityRole(roleName));
+            await _userRoleService.CreateRoleAsync(roleName);
 
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(string roleName)
+    {
+        await _userRoleService.DeleteRoleAsync(roleName);
         return RedirectToAction(nameof(Index));
     }
 
     public async Task<IActionResult> AssignRole(string userId)
     {
-        var user = await _userManager.FindByIdAsync(userId);
-        ViewBag.Roles = _roleManager.Roles.ToList();
-        return View(user);
+        var userVm = await _userRoleService.FindUserByIdAsync(userId);
+        if (userVm == null) return NotFound();
+
+        ViewBag.Roles = await _userRoleService.GetAllRolesAsync();
+        return View(userVm);
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> AssignRole(string userId, string role)
     {
-        var user = await _userManager.FindByIdAsync(userId);
-        await _userManager.AddToRoleAsync(user, role);
-        return RedirectToAction(nameof(Index));
+        var user = await _userRoleService.FindUserByIdAsync(userId);
+        if (user != null)
+            await _userRoleService.AddUserToRoleAsync(user, role);
+
+        return RedirectToAction("Index", "Users");
     }
 }

@@ -1,0 +1,134 @@
+@model Inventory.Domain.ViewModels.PermissionMatrixVM
+
+@{
+    ViewData["Title"] = "Permissions";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var allRoles = (List<string>)ViewBag.AllRoles;
+    var selectedRole = (string)ViewBag.SelectedRole;
+}
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h4 class="mb-0">Role Permissions</h4>
+    </div>
+
+    <div class="card-body">
+
+        <!-- Role tabs -->
+        <ul class="nav nav-tabs mb-4">
+            @foreach (var role in allRoles)
+            {
+                <li class="nav-item">
+                    <a class="nav-link @(role == selectedRole ? "active" : "")"
+                       asp-action="Index" asp-route-role="@role">
+                        @role
+                    </a>
+                </li>
+            }
+        </ul>
+
+        <!-- Permission matrix form -->
+        <form asp-action="Save" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="RoleName" value="@Model.RoleName" />
+
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width:220px">Module</th>
+                            <th class="text-center" style="width:120px">
+                                <i class="bi bi-eye me-1"></i> View
+                            </th>
+                            <th class="text-center" style="width:120px">
+                                <i class="bi bi-pencil me-1"></i> Edit
+                            </th>
+                            <th class="text-center" style="width:120px">
+                                <i class="bi bi-trash me-1"></i> Delete
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.Modules.Count; i++)
+                        {
+                            var m = Model.Modules[i];
+                            <tr>
+                                <td>
+                                    <input type="hidden" name="Modules[@i].Module" value="@m.Module" />
+                                    <strong>@m.Module</strong>
+                                </td>
+                                <td class="text-center">
+                                    <div class="form-check d-flex justify-content-center">
+                                        <input class="form-check-input fs-5"
+                                               type="checkbox"
+                                               name="Modules[@i].CanView"
+                                               value="true"
+                                               id="view_@i"
+                                               @(m.CanView ? "checked" : "") />
+                                        <input type="hidden" name="Modules[@i].CanView" value="false" />
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="form-check d-flex justify-content-center">
+                                        <input class="form-check-input fs-5"
+                                               type="checkbox"
+                                               name="Modules[@i].CanEdit"
+                                               value="true"
+                                               id="edit_@i"
+                                               @(m.CanEdit ? "checked" : "") />
+                                        <input type="hidden" name="Modules[@i].CanEdit" value="false" />
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="form-check d-flex justify-content-center">
+                                        <input class="form-check-input fs-5"
+                                               type="checkbox"
+                                               name="Modules[@i].CanDelete"
+                                               value="true"
+                                               id="delete_@i"
+                                               @(m.CanDelete ? "checked" : "") />
+                                        <input type="hidden" name="Modules[@i].CanDelete" value="false" />
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-1"></i> Save Permissions
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // Uncheck Edit/Delete automatically when View is unchecked
+    document.querySelectorAll('[id^="view_"]').forEach(viewCb => {
+        viewCb.addEventListener('change', () => {
+            if (!viewCb.checked) {
+                const i = viewCb.id.split('_')[1];
+                document.getElementById('edit_' + i).checked = false;
+                document.getElementById('delete_' + i).checked = false;
+            }
+        });
+    });
+
+    // Auto-check View when Edit or Delete is checked
+    ['edit_', 'delete_'].forEach(prefix => {
+        document.querySelectorAll('[id^="' + prefix + '"]').forEach(cb => {
+            cb.addEventListener('change', () => {
+                if (cb.checked) {
+                    const i = cb.id.split('_')[1];
+                    document.getElementById('view_' + i).checked = true;
+                }
+            });
+        });
+    });
+</script>
+}

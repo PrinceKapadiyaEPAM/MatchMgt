@@ -1,6 +1,8 @@
-﻿using Inventory.Domain.Entities;
+﻿using Inventory.Domain.Constants;
+using Inventory.Domain.Entities;
 using Inventory.Domain.ViewModels;
 using Inventory.Infrastructure;
+using Inventory.Web.Filters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -23,6 +25,7 @@ namespace Inventory.Web.Controllers
 
 
         #region Index
+        [RequirePermission(AppModules.Program, "View")]
         public async Task<IActionResult> Index(int? PartyId, int page = 1, int pageSize = 20)
         {
             // Base query (no projection) to allow efficient count and paging
@@ -120,6 +123,7 @@ namespace Inventory.Web.Controllers
 
 
         #region AddEdit
+        [RequirePermission(AppModules.Program, "View")]
         public async Task<IActionResult> AddEdit(int? id)
         {
             ViewBag.Action = "Add";
@@ -190,6 +194,7 @@ namespace Inventory.Web.Controllers
         #region Save
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequirePermission(AppModules.Program, "Edit")]
         public async Task<IActionResult> Save(ProgramVM model)
         {
             if (model.SelectedDesignIds == null || !model.SelectedDesignIds.Any())
@@ -352,6 +357,7 @@ namespace Inventory.Web.Controllers
 
 
         #region Delete
+        [RequirePermission(AppModules.Program, "Delete")]
         public async Task<IActionResult> Delete(int id)
         {
             var program = await _db.Program.FindAsync(id);
@@ -374,6 +380,7 @@ namespace Inventory.Web.Controllers
 
 
         #region Print
+        [RequirePermission(AppModules.Program, "View")]
         public async Task<IActionResult> Print(int ProgramId, string PrintView)
         {
             // Load program header using no-tracking
@@ -437,6 +444,7 @@ namespace Inventory.Web.Controllers
 
         #region GetMatchingByDesign
         [HttpGet]
+        [RequirePermission(AppModules.Program, "View")]
         public async Task<IActionResult> GetMatchingByDesignIDCSV(string DesignIDCSV)
         {
             var vDesignIDList = DesignIDCSV

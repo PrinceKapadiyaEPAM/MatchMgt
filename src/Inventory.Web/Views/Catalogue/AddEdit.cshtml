@@ -18,20 +18,19 @@
 			@Html.HiddenFor(x => x.PhotoFileName)
 
 			<div class="mb-3">
-				<label class="form-label">Code</label>
-				<input asp-for="Code" class="form-control" placeholder="Enter catalogue code" />
-				<span asp-validation-for="Code" class="text-danger"></span>
-			</div>
-
-			<div class="mb-3">
 				<label class="form-label">Name</label>
 				<input asp-for="Name" class="form-control" placeholder="Enter catalogue name" />
 				<span asp-validation-for="Name" class="text-danger"></span>
 			</div>
 
 			<div class="mb-3">
-				<label class="form-label">Packing</label>
-				<input asp-for="Packing" class="form-control" placeholder="Enter packing" />
+				<label class="form-label">Fold</label>
+				<input asp-for="Fold" class="form-control" placeholder="Enter fold" />
+			</div>
+
+			<div class="mb-3">
+				<label class="form-label">Price</label>
+				<input asp-for="Price" type="number" step="0.01" class="form-control" placeholder="Enter price" />
 			</div>
 
 			<div class="mb-3">

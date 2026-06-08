@@ -1,6 +1,8 @@
-﻿using Inventory.Domain.Entities;
+﻿using Inventory.Domain.Constants;
+using Inventory.Domain.Entities;
 using Inventory.Domain.ViewModels;
 using Inventory.Infrastructure;
+using Inventory.Web.Filters;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Authorization;
@@ -21,6 +23,7 @@ namespace Inventory.Web.Controllers
 
 
         #region Index
+        [RequirePermission(AppModules.Design, "View")]
         public async Task<IActionResult> Index(int? designNo, int page = 1, int pageSize = 20)
         {
             var query = _db.Designs.Select(x => new MatchingVM
@@ -59,6 +62,7 @@ namespace Inventory.Web.Controllers
 
 
         #region AddEdit
+        [RequirePermission(AppModules.Design, "View")]
         public async Task<IActionResult> AddEdit(int DesignId = 0)
         {
             ViewBag.PartyList = new SelectList(_db.Party, "PartyId", "PartyName");
@@ -117,6 +121,7 @@ namespace Inventory.Web.Controllers
         #region Save
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequirePermission(AppModules.Design, "Edit")]
         public async Task<IActionResult> Save(MatchingVM vModel)
         {
             // ── Remove model state errors for dynamic plate/matching fields not posted by user
@@ -223,6 +228,7 @@ namespace Inventory.Web.Controllers
 
 
         #region Delete
+        [RequirePermission(AppModules.Design, "Delete")]
         public async Task<IActionResult> Delete(int id)
         {
             var vDesign = await _db.Designs
@@ -248,6 +254,7 @@ namespace Inventory.Web.Controllers
 
 
         #region Print
+        [RequirePermission(AppModules.Design, "View")]
         public async Task<IActionResult> Print(int DesignId)
         {
             var vModel = await _db.Designs

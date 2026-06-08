@@ -30,8 +30,7 @@ namespace Inventory.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Code")
-                        .IsRequired()
+                    b.Property<string>("Fold")
                         .HasColumnType("text");
 
                     b.Property<bool>("IsDeleted")
@@ -41,22 +40,19 @@ namespace Inventory.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Packing")
-                        .HasColumnType("text");
-
                     b.Property<string>("PdfFileName")
                         .HasColumnType("text");
 
                     b.Property<string>("PhotoFileName")
                         .HasColumnType("text");
 
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("numeric");
+
                     b.Property<string>("Remark")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Code")
-                        .IsUnique();
 
                     b.ToTable("Catalogues");
                 });
@@ -190,6 +186,66 @@ namespace Inventory.Infrastructure.Migrations
                     b.HasIndex("DesignId");
 
                     b.ToTable("DesignPlates");
+                });
+
+            modelBuilder.Entity("Inventory.Domain.Entities.DispatchEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Agent")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("Bale")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("BaleNo")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("CatalogueId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Fold")
+                        .HasColumnType("text");
+
+                    b.Property<string>("From")
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("numeric");
+
+                    b.Property<int?>("Qty")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Remark")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Station")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("ToPartyId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Transport")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CatalogueId");
+
+                    b.HasIndex("ToPartyId");
+
+                    b.ToTable("DispatchEntries");
                 });
 
             modelBuilder.Entity("Inventory.Domain.Entities.InventoryTransaction", b =>
@@ -338,6 +394,39 @@ namespace Inventory.Infrastructure.Migrations
                     b.HasIndex("ProgramId");
 
                     b.ToTable("ProgramMatchings");
+                });
+
+            modelBuilder.Entity("Inventory.Domain.Entities.RolePermission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("CanDelete")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CanEdit")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("CanView")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsMenuVisible")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Module")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RoleName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RolePermissions");
                 });
 
             modelBuilder.Entity("Inventory.Infrastructure.Entities.ApplicationUser", b =>
@@ -569,6 +658,21 @@ namespace Inventory.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Design");
+                });
+
+            modelBuilder.Entity("Inventory.Domain.Entities.DispatchEntry", b =>
+                {
+                    b.HasOne("Inventory.Domain.Entities.Catalogue", "Catalogue")
+                        .WithMany()
+                        .HasForeignKey("CatalogueId");
+
+                    b.HasOne("Inventory.Domain.Entities.Party", "ToParty")
+                        .WithMany()
+                        .HasForeignKey("ToPartyId");
+
+                    b.Navigation("Catalogue");
+
+                    b.Navigation("ToParty");
                 });
 
             modelBuilder.Entity("Inventory.Domain.Entities.InventoryTransaction", b =>

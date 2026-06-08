@@ -1,7 +1,9 @@
 ﻿namespace Inventory.Web.Controllers;
+using Inventory.Domain.Constants;
 using Inventory.Domain.Entities;
 using Inventory.Domain.ViewModels;
 using Inventory.Infrastructure;
+using Inventory.Web.Filters;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using System.IO;
@@ -22,6 +24,7 @@ public class CatalogueController : Controller
     }
 
     #region Index
+    [RequirePermission(AppModules.Catalogue, "View")]
     public async Task<IActionResult> Index(string? search, int page = 1, int pageSize = 10)
     {
         // build base query
@@ -29,9 +32,8 @@ public class CatalogueController : Controller
             .Select(c => new CatalogueStockVM
             {
                 Id = c.Id,
-                Code = c.Code,
                 Name = c.Name,
-                Packing = c.Packing,
+                Price = c.Price,
                 Remark = c.Remark,
 
                 Stock = _db.InventoryTransactions
@@ -44,7 +46,6 @@ public class CatalogueController : Controller
         if (!string.IsNullOrWhiteSpace(search))
         {
             query = query.Where(x =>
-                EF.Functions.Like(x.Code, $"%{search}%") ||
                 EF.Functions.Like(x.Name, $"%{search}%"));
         }
 
@@ -67,6 +68,7 @@ public class CatalogueController : Controller
 
 
     #region AddEdit
+    [RequirePermission(AppModules.Catalogue, "View")]
     public async Task<IActionResult> AddEdit(int? id)
     {
         ViewBag.Action = "Create";
@@ -90,6 +92,7 @@ public class CatalogueController : Controller
     #region Save
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [RequirePermission(AppModules.Catalogue, "Edit")]
     public async Task<IActionResult> Save(Catalogue model, IFormFile? photo, IFormFile? pdf)
     {
         if (!ModelState.IsValid)
@@ -134,9 +137,9 @@ public class CatalogueController : Controller
             var item = await _db.Catalogues.FindAsync(model.Id);
             if (item == null) return NotFound();
 
-            item.Code = model.Code;
             item.Name = model.Name;
-            item.Packing = model.Packing;
+            item.Fold = model.Fold;
+            item.Price = model.Price;
             item.Remark = model.Remark;
 
             if (!string.IsNullOrEmpty(model.PhotoFileName))
@@ -154,6 +157,30 @@ public class CatalogueController : Controller
     #endregion
 
 
+    [HttpPost]
+    [RequirePermission(AppModules.Catalogue, "Edit")]
+    public async Task<IActionResult> AddStock([FromBody] AddStockRequest req)
+    {
+        try
+        {
+            var entry = new InventoryTransaction
+            {
+                CatalogueId     = req.CatalogueId,
+                TransactionType = TransactionType.Stock,
+                Quantity        = req.Quantity,
+                TransactionDate = DateTime.SpecifyKind(DateTime.Parse(req.Date), DateTimeKind.Utc)
+            };
+            _db.InventoryTransactions.Add(entry);
+            await _db.SaveChangesAsync();
+            return Json(new { success = true });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, error = ex.Message });
+        }
+    }
+
+    [RequirePermission(AppModules.Catalogue, "View")]
     public IActionResult Create()
     {
         return View();
@@ -161,6 +188,7 @@ public class CatalogueController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [RequirePermission(AppModules.Catalogue, "Edit")]
     public async Task<IActionResult> Create(Catalogue model, IFormFile? photo, IFormFile? pdf)
     {
         if (!ModelState.IsValid)
@@ -202,6 +230,7 @@ public class CatalogueController : Controller
     }
 
 
+    [RequirePermission(AppModules.Catalogue, "View")]
     public async Task<IActionResult> Edit(int id)
     {
         var item = await _db.Catalogues.FindAsync(id);
@@ -213,6 +242,7 @@ public class CatalogueController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [RequirePermission(AppModules.Catalogue, "Edit")]
     public async Task<IActionResult> Edit(int id, Catalogue model, IFormFile? photo, IFormFile? pdf)
     {
         if (id != model.Id)
@@ -225,9 +255,7 @@ public class CatalogueController : Controller
         if (item == null) return NotFound();
 
         // update scalar properties
-        item.Code = model.Code;
         item.Name = model.Name;
-        item.Packing = model.Packing;
         item.Remark = model.Remark;
 
         if (photo != null && photo.Length > 0)
@@ -265,6 +293,7 @@ public class CatalogueController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    [RequirePermission(AppModules.Catalogue, "View")]
     public async Task<IActionResult> Delete(int id)
     {
         var item = await _db.Catalogues.FindAsync(id);
@@ -275,6 +304,7 @@ public class CatalogueController : Controller
 
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
+    [RequirePermission(AppModules.Catalogue, "Delete")]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         var item = await _db.Catalogues.FindAsync(id);
@@ -289,3 +319,5 @@ public class CatalogueController : Controller
         return RedirectToAction(nameof(Index));
     }
 }
+
+public record AddStockRequest(int CatalogueId, int Quantity, string Date);
