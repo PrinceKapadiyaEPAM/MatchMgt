@@ -1,0 +1,42 @@
+﻿@using Microsoft.AspNetCore.Mvc
+@using Microsoft.EntityFrameworkCore
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+<div class="row">
+    <div class="col-md-3">
+        <div class="card shadow">
+            <div class="card-body">
+                <h6>Total Catalouge</h6>
+                <h3>@ViewBag.TotalCatalogues</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow">
+            <div class="card-body">
+                <h6>Available</h6>
+                <h3>@ViewBag.Available</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow">
+            <div class="card-body">
+                <h6>Stock In</h6>
+                <h3>@ViewBag.StockIn</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow">
+            <div class="card-body">
+                <h6>Stock Out</h6>
+                <h3>@ViewBag.StockOut</h3>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,171 @@
+﻿@using Inventory.Domain.Entities
+@model Design
+
+@{
+    Layout = "~/Views/Shared/_Layout_Print.cshtml";
+
+    ViewBag.PageSize = "A4";
+    ViewBag.PageOrientation = "landscape";
+    ViewBag.PageMargin = "8mm 10mm 8mm 10mm";
+    ViewBag.FontSize = "12pt";
+    ViewData["Title"] = "Design - " + Model.DesignNo;
+
+    var vPlateList = ViewBag.PlateList as List<DesignPlate> ?? new List<DesignPlate>();
+    var vMatchingList = ViewBag.MatchingList as List<DesignMatching> ?? new List<DesignMatching>();
+
+    var vMatchingNoList = vMatchingList.GroupBy(x => x.MatchingNo).Select(x => x.First()).ToList();
+}
+
+@section styles {
+    <style>
+        .text-theme {
+            color: var(--theme-color) !important
+        }
+
+        /* Hide controls when printing */
+        @@media print {
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+}
+
+<div class="d-flex justify-content-end mb-2 no-print">
+    <button id="btnPrint" type="button" class="btn btn-sm btn-primary me-2">
+        <i class="bi bi-printer"></i> Print
+    </button>
+    <button id="btnDownload" type="button" class="btn btn-sm btn-secondary">
+        <i class="bi bi-download"></i> Download PDF
+    </button>
+</div>
+
+<div id="printContainer" class="row">
+    <partial name="_LetterheadPartial" />
+    <div class="col-12">
+        <table class="table table-borderless align-middle text-center" style="width: 100%; display:none;">
+            <tr>
+
+                <!-- Left -->
+                <td class="text-start text-theme" width="25%">
+                    <small class="d-block">॥ શ્રી હિંગલાજ માતાજી ॥</small>
+                    <div class="fw-semibold">
+                        Maulikbhai <br>
+                        Mo. 94095 30045
+                    </div>
+                </td>
+
+                <!-- Center -->
+                <td class="text-theme" width="50%">
+                    <small class="d-block">॥ શ્રી ગણેશાય નમઃ ॥</small>
+
+                    <!-- Logo -->
+                    <img src="~/assets/Images/logo.png" alt="Logo" class="img-fluid" style="max-height:70px;">
+                </td>
+
+                <!-- Right -->
+                <td class="text-end text-theme" width="25%">
+                    <small class="d-block">॥ શ્રી સ્વામિનારાયણ ॥</small>
+                    <div class="fw-semibold">
+                        Jasminbhai <br>
+                        Mo. 73830 86867
+                    </div>
+                </td>
+
+            </tr>
+        </table>
+    </div>
+    <div class="col-12">
+        <table style="width:100%; border-collapse:collapse;">
+            <tr>
+                <td class="text-theme" style="width:50%; padding:6px 0;">
+                    <strong>ડિ. નં.</strong> : @Model.DesignNo
+                </td>
+                @* <td class="text-theme" style="width:30%; padding:6px 0;">
+							<strong>પાર્ટી</strong> : @Model.PartyName
+						</td> *@
+                <td class="text-theme" style="width:50%; padding:6px 0; text-align:right;">
+                    <strong>તારીખ</strong> : @Model.Date.ToString("dd MMM yyyy")
+                </td>
+            </tr>
+        </table>
+    </div>
+    <hr style="border:none; border-top:1px solid #000;" />
+
+    <div class="col-12">
+        <table class="table table-bordered text-theme">
+            <thead>
+                <tr class="">
+                    <th class="text-theme">Plate Name</th>
+                    <th class="text-theme text-center"></th>
+                    @foreach (var vMatchingNo in vMatchingNoList.OrderBy(a => a.MatchingNo))
+                    {
+                        <th class="text-theme">M-@vMatchingNo.MatchingNo</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int i = 0;
+                }
+                @foreach (var item in vPlateList.OrderBy(a => a.PlateNo))
+                {
+                    i++;
+                    <tr>
+                        <td class="text-theme">@item.PlateName</td>
+                        <td class="text-theme text-center">@i</td>
+                        @foreach (var vMatchingNo in vMatchingNoList.OrderBy(a => a.MatchingNo))
+                        {
+                            <td class="text-theme">@vMatchingList.Where(x => x.MatchingNo == vMatchingNo.MatchingNo && x.DesignPlateId == item.DesignPlateId).FirstOrDefault()?.Colour</td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+		
+    <div style="page-break-after: always !important;"></div>
+		
+</div>
+
+@section scripts {
+    <!-- html2pdf bundle -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+    <script>
+        (function () {
+        var btn = document.getElementById('btnPrint');
+        var downloadBtn = document.getElementById('btnDownload');
+        var element = document.getElementById('printContainer');
+        var filename = '@($"DesignMatching-{Model.DesignNo}.pdf")';
+        var pageMargin = '@ViewBag.PageMargin';
+        var pageSize = '@ViewBag.PageSize';
+        var pageOrientation = '@ViewBag.PageOrientation';
+
+        if (btn) {
+        btn.addEventListener('click', function () {
+        window.print();
+        });
+        }
+
+        if (downloadBtn) {
+        downloadBtn.addEventListener('click', function () {
+        if (!window.html2pdf) {
+        alert('PDF export library is not loaded.');
+        return;
+        }
+
+        var marginVal = parseFloat(pageMargin) || 8;
+        var opt = {
+        margin: marginVal,
+        filename: filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: pageSize && pageSize.toLowerCase() === 'a4' ? 'a4' : 'a4', orientation: pageOrientation || 'landscape' }
+        };
+
+        html2pdf().set(opt).from(element).save();
+        });
+        }
+        })();
+    </script>
+}

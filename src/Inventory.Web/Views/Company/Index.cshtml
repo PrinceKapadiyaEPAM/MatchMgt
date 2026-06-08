@@ -1,0 +1,206 @@
+@model Inventory.Domain.ViewModels.CompanyProfileVM
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Company Profile";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0"><i class="bi bi-building me-2"></i>Company Profile</h4>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<form asp-action="Save" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="LogoFileName" />
+
+    <div class="row g-4">
+        <!-- Left column: Company details -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-header fw-semibold">Company Details</div>
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label">Company Name <span class="text-danger">*</span></label>
+                        <input asp-for="Name" class="form-control" placeholder="e.g. Ambit Textiles Pvt. Ltd." />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Logo" class="form-label">Logo</label>
+                        @if (!string.IsNullOrEmpty(Model.LogoFileName))
+                        {
+                            <div class="mb-2">
+                                <img src="~/uploads/company/@Model.LogoFileName" alt="Company Logo"
+                                     style="max-height:80px; max-width:200px; object-fit:contain;" class="border rounded p-1" />
+                            </div>
+                        }
+                        <input type="file" asp-for="Logo" class="form-control" accept=".jpg,.jpeg,.png,.gif,.svg" />
+                        <div class="form-text">JPG, PNG, GIF or SVG. Leave blank to keep existing logo.</div>
+                        <span asp-validation-for="Logo" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Address" class="form-label">Address</label>
+                        <textarea asp-for="Address" class="form-control" rows="2" placeholder="Street / Area"></textarea>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label asp-for="City" class="form-label">City</label>
+                            <input asp-for="City" class="form-control" />
+                        </div>
+                        <div class="col-6">
+                            <label asp-for="State" class="form-label">State</label>
+                            <input asp-for="State" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Pincode" class="form-label">Pincode</label>
+                        <input asp-for="Pincode" class="form-control" style="max-width:140px;" />
+                    </div>
+
+                    <hr />
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label asp-for="Phone" class="form-label">Phone</label>
+                            <input asp-for="Phone" class="form-control" />
+                        </div>
+                        <div class="col-6">
+                            <label asp-for="Mobile" class="form-label">Mobile</label>
+                            <input asp-for="Mobile" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label">Email</label>
+                        <input asp-for="Email" class="form-control" type="email" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Website" class="form-label">Website</label>
+                        <input asp-for="Website" class="form-control" placeholder="https://example.com" />
+                    </div>
+
+                    <hr />
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label asp-for="GSTIN" class="form-label">GSTIN</label>
+                            <input asp-for="GSTIN" class="form-control" />
+                        </div>
+                        <div class="col-6">
+                            <label asp-for="PAN" class="form-label">PAN</label>
+                            <input asp-for="PAN" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="CIN" class="form-label">CIN</label>
+                        <input asp-for="CIN" class="form-control" />
+                    </div>
+
+                    <hr />
+
+                    <div class="mb-3">
+                        <label asp-for="ThemeColor" class="form-label">Print Theme Color</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input asp-for="ThemeColor" type="color" class="form-control form-control-color"
+                                   value="@(Model.ThemeColor ?? "#c0544b")" style="width:60px;" />
+                            <input type="text" id="ThemeColorText" class="form-control" style="max-width:120px;"
+                                   value="@(Model.ThemeColor ?? "#c0544b")" placeholder="#c0544b" />
+                        </div>
+                        <div class="form-text">Used for text and borders on all print views.</div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Right column: Letterhead editor -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm h-100">
+                <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+                    <span>Letterhead <span class="text-muted fw-normal small">(appears on all print views)</span></span>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-info" id="loadHeaderTemplate" title="Insert header template">
+                            <i class="bi bi-plus-lg"></i> Template
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <textarea asp-for="LetterheadHtml" id="LetterheadHtml"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-floppy me-1"></i> Save
+        </button>
+    </div>
+</form>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js"></script>
+    <script>
+        tinymce.init({
+            selector: '#LetterheadHtml',
+            base_url: 'https://cdn.jsdelivr.net/npm/tinymce@7',
+            suffix: '.min',
+            height: 440,
+            menubar: false,
+            plugins: 'lists link image table code',
+            toolbar: 'undo redo | blocks fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright | bullist numlist | link image table | code',
+            promotion: false,
+            branding: false
+        });
+
+        // Sync color picker ↔ hex text input
+        var colorPicker = document.getElementById('ThemeColor');
+        var colorText = document.getElementById('ThemeColorText');
+        colorPicker.addEventListener('input', function () { colorText.value = colorPicker.value; });
+        colorText.addEventListener('input', function () {
+            if (/^#[0-9a-fA-F]{6}$/.test(colorText.value)) colorPicker.value = colorText.value;
+        });
+
+        document.getElementById('loadHeaderTemplate').addEventListener('click', function () {
+            const template = `<div style="border-bottom: 2px solid #c0544b; padding: 15px; margin-bottom: 20px;">
+    <div style="text-align: center; color: #c0544b; font-size: 12px; letter-spacing: 2px; margin-bottom: 15px;">
+        &#2358;&#2366; SHREE HINGLAJ MATAJI &#2358;&#2366; &nbsp;&nbsp;&nbsp; &#2358;&#2366; SHREE GANESHAY NAMH &#2358;&#2366; &nbsp;&nbsp;&nbsp; &#2358;&#2366; SHREE SWAMINARAYAN &#2358;&#2366;
+    </div>
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="width: 20%; vertical-align: middle; text-align: center;">
+                <img src="/assets/Images/logo.png" alt="Logo" style="max-height: 90px; max-width: 100%;">
+            </td>
+            <td style="width: 30%; vertical-align: middle; text-align: center;">
+                <div style="color: #c0544b; font-size: 40px; font-weight: bold;">Mitshu</div>
+                <div style="color: #c0544b; font-size: 14px; font-weight: 600;">TEXTILE</div>
+            </td>
+            <td style="width: 50%; vertical-align: middle; padding-left: 20px;">
+                <div style="border: 2px solid #c0544b; border-radius: 5px; padding: 10px; font-size: 12px; color: #c0544b;">
+                    <div style="margin-bottom: 5px;"><strong>&#128222;</strong> +91 94264 80404 | 94095 30045</div>
+                    <div style="margin-bottom: 5px;"><strong>&#128205;</strong> Khirasara road, Mahadev Nagar, Street No.2, Jetpur 360 370</div>
+                    <div><strong>&#9993;&#65039;</strong> mitsutextile@gmail.com</div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>`;
+            tinymce.get('LetterheadHtml').setContent(template);
+        });
+    </script>
+}

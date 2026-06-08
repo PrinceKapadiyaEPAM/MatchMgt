@@ -1,0 +1,20 @@
+@using Inventory.Infrastructure
+@inject ApplicationDbContext _db
+
+@{
+    var profile = _db.CompanyProfile.FirstOrDefault();
+    var themeColor = profile?.ThemeColor ?? "#c0544b";
+}
+
+<style>
+    :root { --theme-color: @themeColor; }
+    .text-theme { color: var(--theme-color) !important; }
+    .border-theme { border-color: var(--theme-color) !important; }
+</style>
+
+@if (profile != null && !string.IsNullOrWhiteSpace(profile.LetterheadHtml))
+{
+    <div class="letterhead">
+        @Html.Raw(profile.LetterheadHtml)
+    </div>
+}

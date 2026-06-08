@@ -1,0 +1,74 @@
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations;
+
+namespace Inventory.Domain.ViewModels
+{
+    public class ProgramVM
+    {
+        public int ProgramId { get; set; }
+
+        [Required(ErrorMessage = "Program No is required")]
+        public string ProgramNo { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Please select party.")]
+        public int PartyId { get; set; }
+        public string? Quality { get; set; }
+        public string? Fold { get; set; }
+        public string? Finishing { get; set; }
+        public string? Agent { get; set; }
+        public decimal? TotalMeter { get; set; }
+        public string? Sticker { get; set; }
+        public string? Remarks { get; set; }
+        public string? Rate { get; set; }
+        public DateOnly Date { get; set; }
+        public decimal? MainCut { get; set; }
+        public int? Quantity { get; set; }
+        public int? Round { get; set; }
+
+        [ValidateNever]
+        public string DesignNoCSV {get; set;} 
+
+        [ValidateNever]
+        public string DesignIDCSV { get; set; }
+
+        [ValidateNever]
+        public IFormFile? Photo { get; set; }
+
+        [ValidateNever]
+        public string ? PhotoFileName { get; set; }
+
+        [Required]
+        public List<string> SelectedMatchings { get; set; } = new();
+
+        [Required]
+        public List<int> SelectedDesignIds { get; set; } = new();
+
+        [ValidateNever]
+        public List<ProgramMatchingVM> Matchings { get; set; } = new();
+
+        [ValidateNever]
+        public string? PartyName { get; set; }
+
+        [ValidateNever]
+        public int? DesignNo { get; set; }
+
+        [ValidateNever]
+        public int TotalMatchings { get; set; }
+    }
+
+    public class ProgramMatchingVM
+    {
+        public int ProgramMatchingId { get; set; }
+        public int ProgramId { get; set; }
+        public int DesignId { get; set; }
+        public int? DesignNo { get; set; }
+        public int DesignMatchingId { get; set; }
+        public int PlateId { get; set; }
+        public int MatchingNo { get; set; }
+        public string Colour { get; set; } = string.Empty;
+
+        [ValidateNever]
+        public string PlateName { get; set; }
+    }
+}

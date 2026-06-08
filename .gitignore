@@ -1,0 +1,13 @@
+### After Opening Notepad — Paste This Inside:
+```
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.vsidx
+*.txt 
+/src/Inventory.Web/wwwroot/uploads
+/src/Inventory.Web/Properties/PublishProfiles
+/src/Inventory.Web/appsettings.Development.json
+/src/Inventory.Web/appsettings.json
