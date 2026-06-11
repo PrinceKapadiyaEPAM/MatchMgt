@@ -101,7 +101,7 @@ public class DispatchController : Controller
     }
 
     [RequirePermission(AppModules.Dispatch, "View")]
-    public async Task<IActionResult> AddDispatch(string? date)
+    public async Task<IActionResult> AddDispatch(string? date, int? editId)
     {
         var target  = DateOnly.TryParse(date, out var d) ? d : DateOnly.FromDateTime(DateTime.Today);
         var entries = await _db.DispatchEntries
@@ -110,6 +110,7 @@ public class DispatchController : Controller
             .ToListAsync();
 
         ViewBag.TargetDate = target.ToString("yyyy-MM-dd");
+        ViewBag.EditId = editId;
 
         ViewBag.CatalogueList = await _db.Catalogues
             .Where(x => !x.IsDeleted)

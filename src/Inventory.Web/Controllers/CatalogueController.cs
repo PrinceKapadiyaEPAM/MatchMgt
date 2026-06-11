@@ -41,6 +41,9 @@ public class CatalogueController : Controller
                     .Sum(t => t.TransactionType == TransactionType.Stock
                             ? t.Quantity
                             : -t.Quantity)
+                    - _db.DispatchEntries
+                        .Where(d => d.CatalogueId == c.Id && (d.Status == "Ok" || d.Status == "Pending"))
+                        .Sum(d => (int?)d.Qty ?? 0)
             });
 
         if (!string.IsNullOrWhiteSpace(search))

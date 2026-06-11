@@ -98,6 +98,7 @@
     <table id="dispatchTable" class="table table-bordered table-sm mb-0">
         <thead>
             <tr>
+                <th style="width:88px;">Action</th>
                 <th>
                     <a asp-action="Index"
                        asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.StatusFilter"
@@ -134,13 +135,17 @@
                             }
                                 </a>
                                 </th>
-                <th style="min-width:60px;">Action</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var e in Model.Items)
             {
                 <tr class="@RowClass(e.Status)">
+                    <td class="text-center">
+                        <a class="btn btn-warning btn-sm p-1 lh-1"
+                           asp-action="AddDispatch" asp-route-date="@e.Date.ToString("yyyy-MM-dd")" asp-route-editId="@e.Id" title="Edit"><i class="bi bi-pencil"></i></a>
+                        <button class="btn btn-danger btn-sm p-1 lh-1 btn-delete" data-id="@e.Id" title="Delete"><i class="bi bi-trash"></i></button>
+                    </td>
                     <td>@e.Date.ToString("dd-MM-yyyy")</td>
                     <td>@(e.CatalogueId.HasValue && catalogueMap.TryGetValue(e.CatalogueId.Value, out var catName) ? catName : "")</td>
                     <td>@e.Fold</td>
@@ -155,11 +160,6 @@
                     <td>@e.BaleNo</td>
                     <td>@e.Price?.ToString("0.##")</td>
                     <td>@e.Status</td>
-                    <td class="text-center">
-                        <a class="btn btn-warning btn-sm px-2 py-0"
-                           asp-action="AddDispatch" asp-route-date="@e.Date.ToString("yyyy-MM-dd")">Edit</a>
-                        <button class="btn btn-danger btn-sm px-2 py-0 btn-delete" data-id="@e.Id">Del</button>
-                    </td>
                 </tr>
             }
         </tbody>
