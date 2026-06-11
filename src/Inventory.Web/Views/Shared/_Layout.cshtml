@@ -103,12 +103,8 @@
                         }
                         @if (viewable.Contains(AppModules.Dispatch))
                         {
-                            <li class="nav-item dropdown">
-                                <a class="nav-link text-dark dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Dispatch</a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" asp-area="" asp-controller="Dispatch" asp-action="AddDispatch">Add Dispatch</a></li>
-                                    <li><a class="dropdown-item" asp-area="" asp-controller="Dispatch" asp-action="Index">Dispatch Register</a></li>
-                                </ul>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Dispatch" asp-action="Index">Dispatch</a>
                             </li>
                         }
                         @if (User.IsInRole("Admin"))

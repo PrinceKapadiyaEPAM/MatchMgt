@@ -233,13 +233,27 @@ namespace Inventory.Web.Controllers
         {
             var vDesign = await _db.Designs
                 .Include(x => x.DesignPlates)
+                .FirstOrDefaultAsync(x => x.DesignId == id);
+
+            if (vDesign == null)
+                return NotFound();
+
+            return View(vDesign);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        [RequirePermission(AppModules.Design, "Delete")]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var vDesign = await _db.Designs
+                .Include(x => x.DesignPlates)
                     .ThenInclude(x => x.DesignMatchings)
                 .FirstOrDefaultAsync(x => x.DesignId == id);
 
             if (vDesign == null)
                 return NotFound();
 
-            // Remove matchings first, then plates, then design
             foreach (var plate in vDesign.DesignPlates)
                 _db.DesignMatchings.RemoveRange(plate.DesignMatchings);
 
@@ -257,13 +271,17 @@ namespace Inventory.Web.Controllers
         [RequirePermission(AppModules.Design, "View")]
         public async Task<IActionResult> Print(int DesignId)
         {
-            var vModel = await _db.Designs
-                .Where(x => x.DesignId == DesignId).FirstOrDefaultAsync();
+            var design = await _db.Designs.FirstOrDefaultAsync(x => x.DesignId == DesignId);
+            if (design == null) return NotFound();
 
-            ViewBag.PlateList = await _db.DesignPlates.Where(x => x.DesignId == DesignId).ToListAsync();
-            ViewBag.MatchingList = await _db.DesignMatchings.Where(m => m.DesignPlate.DesignId == DesignId).ToListAsync();
+            var vm = new DesignPrintVM
+            {
+                Design    = design,
+                Plates    = await _db.DesignPlates.Where(x => x.DesignId == DesignId).ToListAsync(),
+                Matchings = await _db.DesignMatchings.Where(m => m.DesignPlate.DesignId == DesignId).ToListAsync()
+            };
 
-            return View("Print_Matching",vModel);
+            return View("Print_Matching", vm);
         }
         #endregion
     }

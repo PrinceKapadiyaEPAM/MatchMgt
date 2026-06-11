@@ -25,5 +25,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(builder);
 
+        builder.Entity<DesignMatching>()
+            .HasIndex(d => new { d.DesignPlateId, d.MatchingNo })
+            .IsUnique();
     }
 }

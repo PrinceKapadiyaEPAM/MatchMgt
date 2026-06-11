@@ -1,8 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+﻿using Inventory.Domain.Entities;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace Inventory.Domain.ViewModels
 {
+    public class DesignPrintVM
+    {
+        public Design Design { get; set; } = null!;
+        public List<DesignPlate> Plates { get; set; } = new();
+        public List<DesignMatching> Matchings { get; set; } = new();
+    }
+
     public class MatchingVM
     {
         public int DesignId { get; set; }
@@ -36,7 +44,7 @@ namespace Inventory.Domain.ViewModels
         public string? PlateName { get; set; }
 
         [ValidateNever]
-        public string? PlateNo { get; set; }
+        public int PlateNo { get; set; }
 
         [ValidateNever]
         public List<MatchingCell> Matchings { get; set; } = new();

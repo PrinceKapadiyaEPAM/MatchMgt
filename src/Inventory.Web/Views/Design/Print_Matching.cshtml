@@ -1,5 +1,5 @@
 ﻿@using Inventory.Domain.Entities
-@model Design
+@model Inventory.Domain.ViewModels.DesignPrintVM
 
 @{
     Layout = "~/Views/Shared/_Layout_Print.cshtml";
@@ -8,10 +8,10 @@
     ViewBag.PageOrientation = "landscape";
     ViewBag.PageMargin = "8mm 10mm 8mm 10mm";
     ViewBag.FontSize = "12pt";
-    ViewData["Title"] = "Design - " + Model.DesignNo;
+    ViewData["Title"] = "Design - " + Model.Design.DesignNo;
 
-    var vPlateList = ViewBag.PlateList as List<DesignPlate> ?? new List<DesignPlate>();
-    var vMatchingList = ViewBag.MatchingList as List<DesignMatching> ?? new List<DesignMatching>();
+    var vPlateList    = Model.Plates;
+    var vMatchingList = Model.Matchings;
 
     var vMatchingNoList = vMatchingList.GroupBy(x => x.MatchingNo).Select(x => x.First()).ToList();
 }
@@ -79,13 +79,13 @@
         <table style="width:100%; border-collapse:collapse;">
             <tr>
                 <td class="text-theme" style="width:50%; padding:6px 0;">
-                    <strong>ડિ. નં.</strong> : @Model.DesignNo
+                    <strong>ડિ. નં.</strong> : @Model.Design.DesignNo
                 </td>
                 @* <td class="text-theme" style="width:30%; padding:6px 0;">
-							<strong>પાર્ટી</strong> : @Model.PartyName
+							<strong>પાર્ટી</strong> : @Model.Design.PartyName
 						</td> *@
                 <td class="text-theme" style="width:50%; padding:6px 0; text-align:right;">
-                    <strong>તારીખ</strong> : @Model.Date.ToString("dd MMM yyyy")
+                    <strong>તારીખ</strong> : @Model.Design.Date.ToString("dd MMM yyyy")
                 </td>
             </tr>
         </table>
@@ -136,7 +136,7 @@
         var btn = document.getElementById('btnPrint');
         var downloadBtn = document.getElementById('btnDownload');
         var element = document.getElementById('printContainer');
-        var filename = '@($"DesignMatching-{Model.DesignNo}.pdf")';
+        var filename = '@($"DesignMatching-{Model.Design.DesignNo}.pdf")';
         var pageMargin = '@ViewBag.PageMargin';
         var pageSize = '@ViewBag.PageSize';
         var pageOrientation = '@ViewBag.PageOrientation';

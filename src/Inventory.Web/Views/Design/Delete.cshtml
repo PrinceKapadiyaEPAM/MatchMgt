@@ -1,0 +1,23 @@
+@model Inventory.Domain.Entities.Design
+@{
+    ViewData["Title"] = "Delete Design";
+}
+
+<div class="card shadow-sm" style="max-width:500px; margin:auto;">
+    <div class="card-header bg-danger text-white">
+        <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Delete Design</h5>
+    </div>
+    <div class="card-body">
+        <p>Are you sure you want to delete <strong>Design #@Model.DesignNo</strong>?</p>
+        <p class="text-muted small">This will permanently remove the design, all its plates, and all colour matchings.</p>
+
+        <form asp-action="Delete" method="post" class="d-inline">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.DesignId" />
+            <button type="submit" class="btn btn-danger me-2">
+                <i class="bi bi-trash"></i> Delete
+            </button>
+            <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>

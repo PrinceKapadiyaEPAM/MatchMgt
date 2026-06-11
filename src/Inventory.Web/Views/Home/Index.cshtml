@@ -5,7 +5,7 @@
     ViewData["Title"] = "Home Page";
 }
 <div class="row">
-    <div class="col-md-3">
+    <div class="col-md-2">
         <div class="card shadow">
             <div class="card-body">
                 <h6>Total Catalouge</h6>
@@ -13,7 +13,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
         <div class="card shadow">
             <div class="card-body">
                 <h6>Available</h6>
@@ -22,7 +22,7 @@
         </div>
     </div>
 
-    <div class="col-md-3">
+    <div class="col-md-2">
         <div class="card shadow">
             <div class="card-body">
                 <h6>Stock In</h6>
@@ -31,7 +31,7 @@
         </div>
     </div>
 
-    <div class="col-md-3">
+    <div class="col-md-2">
         <div class="card shadow">
             <div class="card-body">
                 <h6>Stock Out</h6>
@@ -39,4 +39,78 @@
             </div>
         </div>
     </div>
+    <div class="col-md-2">
+        <div class="card shadow">
+            <div class="card-body">
+                <h6>Dispatch (Parcel)</h6>
+                <h3>@ViewBag.TotalBales</h3>
+            </div>
+        </div>
+    </div>
 </div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Dispatches</span>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary active" data-range="thisweek">This Week</button>
+                    <button class="btn btn-outline-secondary" data-range="lastweek">Last Week</button>
+                    <button class="btn btn-outline-secondary" data-range="thismonth">This Month</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="dispatchChart" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    let chart;
+
+    async function loadChart(range) {
+        const res  = await fetch(`/Home/ChartData?range=${range}`);
+        const data = await res.json();
+
+        if (chart) {
+            chart.data.labels = data.map(d => d.label);
+            chart.data.datasets[0].data = data.map(d => d.qty);
+            chart.update();
+        } else {
+            chart = new Chart(document.getElementById('dispatchChart'), {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.label),
+                    datasets: [{
+                        label: 'Qty Dispatched',
+                        data: data.map(d => d.qty),
+                        borderColor: '#70ad47',
+                        backgroundColor: 'rgba(112,173,71,0.15)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        document.querySelectorAll('[data-range]').forEach(btn =>
+            btn.classList.toggle('active', btn.dataset.range === range)
+        );
+    }
+
+    loadChart('thisweek');
+    document.querySelectorAll('[data-range]').forEach(btn =>
+        btn.addEventListener('click', () => loadChart(btn.dataset.range))
+    );
+</script>
+}
