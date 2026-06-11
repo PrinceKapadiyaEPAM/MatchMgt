@@ -186,6 +186,17 @@ public class DispatchController : Controller
     }
 
     [HttpPost]
+    [RequirePermission(AppModules.Dispatch, "Edit")]
+    public async Task<IActionResult> PatchStatus([FromBody] PatchStatusRequest req)
+    {
+        var entry = await _db.DispatchEntries.FindAsync(req.Id);
+        if (entry == null) return Json(new { success = false, error = "Record not found." });
+        entry.Status = req.Status;
+        await _db.SaveChangesAsync();
+        return Json(new { success = true });
+    }
+
+    [HttpPost]
     [RequirePermission(AppModules.Dispatch, "Delete")]
     public async Task<IActionResult> DeleteRow([FromBody] int id)
     {
@@ -197,3 +208,5 @@ public class DispatchController : Controller
         return Json(new { success = true });
     }
 }
+
+public record PatchStatusRequest(int Id, string Status);

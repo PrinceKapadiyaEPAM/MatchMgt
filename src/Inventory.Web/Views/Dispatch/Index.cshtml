@@ -54,6 +54,10 @@
     .status-ok { background:#d4edda !important; }
     .status-pending { background:#fff3cd !important; }
     .status-cancelled { background:#f8d7da !important; }
+    #dispatchTable .sel-status { border:none; box-shadow:none; background:transparent; padding:2px 4px; font-size:13px; width:100%; }
+    #dispatchTable .sel-status:disabled { -webkit-appearance:none; appearance:none; pointer-events:none; opacity:1; color:#212529; }
+    #dispatchTable .sel-status:not(:disabled) { background:#fffde7 !important; border:1px solid #ced4da !important; border-radius:4px !important; }
+    .td-status { cursor:pointer; }
 </style>
 
 <!-- Filter bar -->
@@ -140,7 +144,7 @@
         <tbody>
             @foreach (var e in Model.Items)
             {
-                <tr class="@RowClass(e.Status)">
+                <tr class="@RowClass(e.Status)" data-id="@e.Id" data-status="@e.Status">
                     <td class="text-center">
                         <a class="btn btn-warning btn-sm p-1 lh-1"
                            asp-action="AddDispatch" asp-route-date="@e.Date.ToString("yyyy-MM-dd")" asp-route-editId="@e.Id" title="Edit"><i class="bi bi-pencil"></i></a>
@@ -159,7 +163,13 @@
                     <td>@e.Qty</td>
                     <td>@e.BaleNo</td>
                     <td>@e.Price?.ToString("0.##")</td>
-                    <td>@e.Status</td>
+                    <td class="td-status" title="Double-click to change status">
+                        <select class="sel-status" disabled>
+                            <option value="Ok">Ok</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </td>
                 </tr>
             }
         </tbody>
@@ -213,18 +223,62 @@
 
 @section Scripts {
 <script>
-    document.querySelectorAll('.btn-delete').forEach(btn => {
-        btn.addEventListener('click', async () => {
+    const statusRowClass = { Ok: 'status-ok', Pending: 'status-pending', Cancelled: 'status-cancelled' };
+
+    function initRow(row) {
+        const sel = row.querySelector('.sel-status');
+        sel.value = row.dataset.status || 'Pending';
+
+        row.querySelector('.td-status').addEventListener('dblclick', () => {
+            sel.disabled = false;
+            sel.focus();
+            let changed = false;
+            function onchange() {
+                changed = true;
+                sel.removeEventListener('change', onchange);
+                sel.removeEventListener('blur', onblur);
+                patchStatus(row, sel.value);
+            }
+            function onblur() {
+                if (!changed) {
+                    sel.removeEventListener('change', onchange);
+                    sel.disabled = true;
+                }
+            }
+            sel.addEventListener('change', onchange);
+            sel.addEventListener('blur', onblur);
+        });
+
+        row.querySelector('.btn-delete').addEventListener('click', async () => {
             if (!confirm('Delete this row?')) return;
-            const id  = parseInt(btn.dataset.id);
             const res  = await fetch('/Dispatch/DeleteRow', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(id)
+                body: JSON.stringify(parseInt(row.dataset.id))
             });
             const json = await res.json();
-            if (json.success) btn.closest('tr').remove(); else alert('Delete failed.');
+            if (json.success) row.remove(); else alert('Delete failed.');
         });
-    });
+    }
+
+    async function patchStatus(row, newStatus) {
+        const res  = await fetch('/Dispatch/PatchStatus', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: parseInt(row.dataset.id), status: newStatus })
+        });
+        const json = await res.json();
+        if (json.success) {
+            row.dataset.status = newStatus;
+            row.querySelector('.sel-status').disabled = true;
+            row.className = statusRowClass[newStatus] ?? '';
+        } else {
+            alert('Save failed: ' + (json.error ?? 'Unknown error'));
+            row.querySelector('.sel-status').value    = row.dataset.status;
+            row.querySelector('.sel-status').disabled = true;
+        }
+    }
+
+    document.querySelectorAll('#dispatchTable tbody tr').forEach(initRow);
 </script>
 }

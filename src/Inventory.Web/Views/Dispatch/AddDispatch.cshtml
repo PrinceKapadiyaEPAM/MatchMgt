@@ -187,7 +187,9 @@
             changed = true;
             statusSel.removeEventListener('change', onchange);
             statusSel.removeEventListener('blur', onblur);
-            saveRow(row, { addNewRow: false });
+            const id = parseInt(row.dataset.id);
+            if (id) patchStatus(row, statusSel.value);
+            else    saveRow(row, { addNewRow: false });
         }
         function onblur() {
             if (!changed) {
@@ -199,6 +201,26 @@
         statusSel.addEventListener('blur', onblur);
     }
 
+    async function patchStatus(row, newStatus) {
+        const res  = await fetch('/Dispatch/PatchStatus', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: parseInt(row.dataset.id), status: newStatus })
+        });
+        const json = await res.json();
+        if (json.success) {
+            row.dataset.status = newStatus;
+            row.querySelector('.sel-status').disabled = true;
+            row.classList.remove('status-ok', 'status-pending', 'status-cancelled');
+            const map = { Ok: 'status-ok', Pending: 'status-pending', Cancelled: 'status-cancelled' };
+            if (map[newStatus]) row.classList.add(map[newStatus]);
+        } else {
+            alert('Save failed: ' + (json.error ?? 'Unknown error'));
+            row.querySelector('.sel-status').value    = row.dataset.status || 'Pending';
+            row.querySelector('.sel-status').disabled = true;
+        }
+    }
+
     function enterEdit(row) {
         row.querySelectorAll('input, select').forEach(el => {
             el.disabled = false;
@@ -208,6 +230,8 @@
         });
         row.querySelector('.btn-edit').style.display = 'none';
         row.querySelector('.btn-save').style.display = '';
+        const statusTd = row.querySelector('.sel-status').closest('td');
+        statusTd.style.cursor = 'default'; statusTd.title = '';
     }
 
     function getRowData(row) {
@@ -249,6 +273,8 @@
                 row.querySelector('.btn-save').style.display   = 'none';
                 row.querySelector('.btn-edit').style.display   = '';
                 row.querySelector('.btn-delete').style.display = '';
+                const statusTd = row.querySelector('.sel-status').closest('td');
+                statusTd.style.cursor = 'pointer'; statusTd.title = 'Double-click to change status';
                 row.classList.remove('status-ok', 'status-pending', 'status-cancelled');
                 const statusMap = { Ok: 'status-ok', Pending: 'status-pending', Cancelled: 'status-cancelled' };
                 if (statusMap[data.status]) row.classList.add(statusMap[data.status]);
