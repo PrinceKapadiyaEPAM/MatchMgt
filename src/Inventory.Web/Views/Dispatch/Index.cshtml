@@ -116,17 +116,6 @@
                 <th>Catalogue</th><th>Fold</th><th>Agent</th><th>To Party</th>
                 <th>From</th><th>Transport</th><th>Station</th>
                 <th>Bale</th><th>Remark</th>
-                <th>
-                    <a asp-action="Index"
-                       asp-route-search="@ViewBag.Search" asp-route-status="@ViewBag.StatusFilter"
-                       asp-route-partyId="@ViewBag.PartyFilter" asp-route-catalogueId="@ViewBag.CatFilter"
-                       asp-route-dateFrom="@ViewBag.DateFrom" asp-route-dateTo="@ViewBag.DateTo"
-                       asp-route-sortBy="qty" asp-route-sortDir="@NextDir("qty")"
-                        asp-route-pageSize="@ViewBag.PageSize">Qty@{
-                                Html.Raw(Arrow("qty"));
-                            }
-                                </a>
-                                </th>
                 <th>Bale No.</th><th>Price</th>
                 <th>
                     <a asp-action="Index"
@@ -160,7 +149,6 @@
                     <td>@e.Station</td>
                     <td>@e.Bale</td>
                     <td>@e.Remark</td>
-                    <td>@e.Qty</td>
                     <td>@e.BaleNo</td>
                     <td>@e.Price?.ToString("0.##")</td>
                     <td class="td-status" title="Double-click to change status">

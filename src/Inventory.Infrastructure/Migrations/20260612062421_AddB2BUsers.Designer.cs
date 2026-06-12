@@ -3,6 +3,7 @@ using System;
 using Inventory.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Inventory.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260612062421_AddB2BUsers")]
+    partial class AddB2BUsers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -60,15 +63,6 @@ namespace Inventory.Infrastructure.Migrations
 
                     b.Property<string>("Phone")
                         .HasColumnType("text");
-
-                    b.Property<bool>("ShowCatalogue")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("ShowPrices")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("ShowStock")
-                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 
@@ -314,6 +308,9 @@ namespace Inventory.Infrastructure.Migrations
 
                     b.Property<decimal?>("Price")
                         .HasColumnType("numeric");
+
+                    b.Property<int?>("Qty")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Remark")
                         .HasColumnType("text");

@@ -8,7 +8,8 @@ public static class AppModules
     public const string Design    = "Design";
     public const string Program   = "Program";
     public const string Dispatch  = "Dispatch";
+    public const string B2BUsers  = "B2BUsers";
 
     public static readonly IReadOnlyList<string> All =
-        [Catalogue, Inventory, Party, Design, Program, Dispatch];
+        [Catalogue, Inventory, Party, Design, Program, Dispatch, B2BUsers];
 }

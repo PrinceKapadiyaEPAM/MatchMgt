@@ -86,6 +86,16 @@ namespace Inventory.Web.Controllers
                 item.City = model.City;
                 item.State = model.State;
                 item.Remarks = model.Remarks;
+                item.IsActive = model.IsActive;
+
+                // Cascade: deactivate all linked B2BUsers when Party is deactivated
+                if (item.IsActive && !model.IsActive)
+                {
+                    var linkedUsers = await _db.B2BUsers
+                        .Where(u => u.PartyId == model.PartyId && u.IsActive)
+                        .ToListAsync();
+                    foreach (var u in linkedUsers) u.IsActive = false;
+                }
 
                 TempData["Success"] = "Party updated successfully.";
             }
@@ -93,6 +103,16 @@ namespace Inventory.Web.Controllers
             await _db.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
+        }
+        #endregion
+
+
+        #region B2BUserCount
+        [HttpGet]
+        public async Task<IActionResult> B2BUserCount(int partyId)
+        {
+            var count = await _db.B2BUsers.CountAsync(u => u.PartyId == partyId && u.IsActive);
+            return Json(new { count });
         }
         #endregion
 

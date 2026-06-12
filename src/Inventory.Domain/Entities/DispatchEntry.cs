@@ -21,7 +21,6 @@ public class DispatchEntry
     public string? Station { get; set; }
     public int? Bale { get; set; }
     public string? Remark { get; set; }
-    public int? Qty { get; set; }
     public string? BaleNo { get; set; }
     public decimal? Price { get; set; }
     public string Status { get; set; } = "Pending";

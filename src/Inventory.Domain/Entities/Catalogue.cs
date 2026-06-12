@@ -10,6 +10,7 @@ public class Catalogue
     public string? PhotoFileName { get; set; }
     public string? PdfFileName { get; set; }
     public bool IsDeleted { get; set; }
+    public DateOnly? RestockDate { get; set; }
 
     public ICollection<InventoryTransaction> Transactions { get; set; }
         = new List<InventoryTransaction>();

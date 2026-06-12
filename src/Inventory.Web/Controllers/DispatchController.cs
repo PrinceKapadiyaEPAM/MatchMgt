@@ -49,8 +49,8 @@ public class DispatchController : Controller
             ("date",   "asc")  => query.OrderBy(x => x.Date).ThenBy(x => x.Id),
             ("status", "asc")  => query.OrderBy(x => x.Status),
             ("status", _)      => query.OrderByDescending(x => x.Status),
-            ("qty",    "asc")  => query.OrderBy(x => x.Qty),
-            ("qty",    _)      => query.OrderByDescending(x => x.Qty),
+            ("bale",   "asc")  => query.OrderBy(x => x.Bale),
+            ("bale",   _)      => query.OrderByDescending(x => x.Bale),
             _                  => query.OrderByDescending(x => x.Date).ThenByDescending(x => x.Id),
         };
 
@@ -170,7 +170,6 @@ public class DispatchController : Controller
                 entry.Station = model.Station;
                 entry.Bale = model.Bale;
                 entry.Remark = model.Remark;
-                entry.Qty = model.Qty;
                 entry.BaleNo = model.BaleNo;
                 entry.Price = model.Price;
                 entry.Status = model.Status;

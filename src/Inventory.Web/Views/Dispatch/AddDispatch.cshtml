@@ -66,7 +66,7 @@
                 <th style="width:88px;">Action</th>
                 <th>Date</th><th>Catalogue</th><th>Fold</th><th>Agent</th>
                 <th>To Party</th><th>From</th><th>Transport</th><th>Station</th>
-                <th>Bale</th><th>Remark</th><th>Qty</th><th>Bale No.</th>
+                <th>Bale</th><th>Remark</th><th>Bale No.</th>
                 <th>Price</th><th>Status</th>
             </tr>
         </thead>
@@ -108,7 +108,6 @@
                     <td><input type="text"   class="form-control form-control-sm"                     value="@e.Station"   disabled /></td>
                     <td><input type="number" class="form-control form-control-sm"                     value="@e.Bale"      disabled /></td>
                     <td><input type="text"   class="form-control form-control-sm"                     value="@e.Remark"    disabled /></td>
-                    <td><input type="number" class="form-control form-control-sm"                     value="@e.Qty"       disabled /></td>
                     <td><input type="text"   class="form-control form-control-sm"                     value="@e.BaleNo"    disabled /></td>
                     <td><input type="number" step="0.01" class="form-control form-control-sm inp-price" value="@e.Price"   disabled /></td>
                     <td>
@@ -236,7 +235,7 @@
 
     function getRowData(row) {
         const cells = row.querySelectorAll('input, select');
-        const [date, catalogue, fold, agent, toParty, from, transport, station, bale, remark, qty, baleNo, price, status] = cells;
+        const [date, catalogue, fold, agent, toParty, from, transport, station, bale, remark, baleNo, price, status] = cells;
         return {
             id:          parseInt(row.dataset.id) || 0,
             date:        date.value || null,
@@ -249,7 +248,6 @@
             station:     station.value   || null,
             bale:        bale.value   !== '' ? parseInt(bale.value)    : null,
             remark:      remark.value    || null,
-            qty:         qty.value    !== '' ? parseInt(qty.value)     : null,
             baleNo:      baleNo.value    || null,
             price:       price.value  !== '' ? parseFloat(price.value) : null,
             status:      status.value
@@ -323,12 +321,11 @@
             <td><select class="form-select form-select-sm sel-fold">${foldOptions}</select></td>
             <td><input type="text"   class="form-control form-control-sm" list="agentList" /></td>
             <td><select class="form-select form-select-sm sel-toparty">${partyOptions}</select></td>
-            <td><input type="text"   class="form-control form-control-sm" value="SPI" /></td>
+            <td><input type="text"   class="form-control form-control-sm" /></td>
             <td><input type="text"   class="form-control form-control-sm" list="transportList" /></td>
             <td><input type="text"   class="form-control form-control-sm" /></td>
             <td><input type="number" class="form-control form-control-sm" /></td>
             <td><input type="text"   class="form-control form-control-sm" /></td>
-            <td><input type="number" class="form-control form-control-sm" /></td>
             <td><input type="text"   class="form-control form-control-sm" /></td>
             <td><input type="number" step="0.01" class="form-control form-control-sm inp-price" /></td>
             <td><select class="form-select form-select-sm status-select sel-status">
@@ -364,5 +361,12 @@
             row.scrollIntoView({ block: 'center' });
         }
     });
+
+    // Auto-add a blank row on page load so the user can start entering immediately
+    if (!editId) {
+        const row = createNewRow();
+        document.getElementById('dispatchBody').prepend(row);
+        row.querySelector('input[type="date"]').focus();
+    }
 </script>
 }

@@ -59,6 +59,11 @@
                                         <i class="bi bi-pencil"></i>
                                     </a>
 
+                                    <a asp-controller="PartyPrices" asp-action="Index" asp-route-partyId="@item.PartyId"
+                                       class="btn btn-sm btn-outline-warning" title="Manage Prices">
+                                        <i class="bi bi-tag"></i>
+                                    </a>
+
                                     <a asp-action="Delete"
                                        asp-controller="Party"
                                        asp-route-id="@item.PartyId"

@@ -11,6 +11,7 @@ namespace Inventory.Domain.Entities
         public string? City { get; set; }
         public string? State { get; set; }
         public string? Remarks{ get; set; }
+        public bool IsActive { get; set; } = true;
 
         public ICollection<Design> Design { get; set; } = new List<Design>();
     }

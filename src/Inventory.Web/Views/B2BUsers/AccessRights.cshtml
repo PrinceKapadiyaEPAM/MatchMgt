@@ -1,0 +1,124 @@
+@model Inventory.Domain.Entities.B2BUser
+@{
+    ViewData["Title"] = "B2B Access Rights";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-shield-lock me-2"></i>B2B Access Rights</h5>
+    <a asp-action="Index" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card shadow-sm" style="max-width:640px">
+    <div class="card-header d-flex align-items-center gap-2">
+        <i class="bi bi-person-circle fs-5"></i>
+        <div>
+            <div class="fw-semibold">@Model.FullName</div>
+            <small class="text-muted">@Model.Email</small>
+        </div>
+    </div>
+    <div class="card-body">
+        <form asp-action="SaveAccessRights" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+
+            <p class="text-muted mb-3" style="font-size:.875rem">
+                Control which features this user can access in the mobile app.
+            </p>
+
+            <table class="table table-bordered align-middle mb-4">
+                <thead class="table-light">
+                    <tr>
+                        <th>Feature</th>
+                        <th class="text-center" style="width:120px">
+                            <i class="bi bi-eye me-1"></i>Visible
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="fw-semibold"><i class="bi bi-grid me-2 text-primary"></i>Catalogue</div>
+                            <small class="text-muted">Browse products in the mobile app</small>
+                        </td>
+                        <td class="text-center">
+                            <div class="form-check d-flex justify-content-center">
+                                <input class="form-check-input fs-5" type="checkbox" name="showCatalogue" value="true"
+                                       id="chkCatalogue" @(Model.ShowCatalogue ? "checked" : "") />
+                                <input type="hidden" name="showCatalogue" value="false" />
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="rowPrices" class="@(!Model.ShowCatalogue ? "text-muted" : "")">
+                        <td>
+                            <div class="fw-semibold"><i class="bi bi-tag me-2 text-warning"></i>Prices</div>
+                            <small class="text-muted">Show price field on catalogue items</small>
+                        </td>
+                        <td class="text-center">
+                            <div class="form-check d-flex justify-content-center">
+                                <input class="form-check-input fs-5" type="checkbox" name="showPrices" value="true"
+                                       id="chkPrices" @(Model.ShowPrices ? "checked" : "") />
+                                <input type="hidden" name="showPrices" value="false" />
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="rowStock" class="@(!Model.ShowCatalogue ? "text-muted" : "")">
+                        <td>
+                            <div class="fw-semibold"><i class="bi bi-box-seam me-2 text-success"></i>Stock Status</div>
+                            <small class="text-muted">Show stock quantity and availability status</small>
+                        </td>
+                        <td class="text-center">
+                            <div class="form-check d-flex justify-content-center">
+                                <input class="form-check-input fs-5" type="checkbox" name="showStock" value="true"
+                                       id="chkStock" @(Model.ShowStock ? "checked" : "") />
+                                <input type="hidden" name="showStock" value="false" />
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-1"></i> Save Access Rights
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const chkCatalogue = document.getElementById('chkCatalogue');
+    const chkPrices    = document.getElementById('chkPrices');
+    const chkStock     = document.getElementById('chkStock');
+
+    chkCatalogue.addEventListener('change', function () {
+        if (!this.checked) {
+            chkPrices.checked = false;
+            chkStock.checked  = false;
+        }
+        [chkPrices, chkStock].forEach(cb => cb.disabled = !this.checked);
+    });
+
+    [chkPrices, chkStock].forEach(cb => {
+        cb.addEventListener('change', function () {
+            if (this.checked) chkCatalogue.checked = true;
+        });
+    });
+
+    // Init disabled state
+    if (!chkCatalogue.checked) {
+        chkPrices.disabled = true;
+        chkStock.disabled  = true;
+    }
+</script>
+}

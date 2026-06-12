@@ -20,6 +20,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<CompanyProfile> CompanyProfile => Set<CompanyProfile>();
     public DbSet<DispatchEntry> DispatchEntries => Set<DispatchEntry>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+    public DbSet<B2BUser> B2BUsers => Set<B2BUser>();
+    public DbSet<CataloguePartyPrice> CataloguePartyPrices => Set<CataloguePartyPrice>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -27,6 +29,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
         builder.Entity<DesignMatching>()
             .HasIndex(d => new { d.DesignPlateId, d.MatchingNo })
+            .IsUnique();
+
+        builder.Entity<B2BUser>()
+            .HasIndex(u => u.Email)
+            .IsUnique();
+
+        builder.Entity<CataloguePartyPrice>()
+            .HasIndex(p => new { p.CatalogueId, p.PartyId })
             .IsUnique();
     }
 }

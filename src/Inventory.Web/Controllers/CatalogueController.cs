@@ -43,7 +43,7 @@ public class CatalogueController : Controller
                             : -t.Quantity)
                     - _db.DispatchEntries
                         .Where(d => d.CatalogueId == c.Id && (d.Status == "Ok" || d.Status == "Pending"))
-                        .Sum(d => (int?)d.Qty ?? 0)
+                        .Sum(d => (int?)d.Bale ?? 0)
             });
 
         if (!string.IsNullOrWhiteSpace(search))
@@ -144,6 +144,7 @@ public class CatalogueController : Controller
             item.Fold = model.Fold;
             item.Price = model.Price;
             item.Remark = model.Remark;
+            item.RestockDate = model.RestockDate;
 
             if (!string.IsNullOrEmpty(model.PhotoFileName))
                 item.PhotoFileName = model.PhotoFileName;
@@ -155,6 +156,10 @@ public class CatalogueController : Controller
         }
 
         await _db.SaveChangesAsync();
+
+        if (model.Price == null)
+            TempData["PriceWarning"] = "No price set — this item will show 'Price on Request' to mobile app users.";
+
         return RedirectToAction(nameof(Index));
     }
     #endregion
@@ -229,6 +234,8 @@ public class CatalogueController : Controller
         await _db.SaveChangesAsync();
 
         TempData["Success"] = "Product created successfully.";
+        if (model.Price == null)
+            TempData["PriceWarning"] = "No price set — this item will show 'Price on Request' to mobile app users.";
         return RedirectToAction(nameof(Index));
     }
 
@@ -260,6 +267,7 @@ public class CatalogueController : Controller
         // update scalar properties
         item.Name = model.Name;
         item.Remark = model.Remark;
+        item.RestockDate = model.RestockDate;
 
         if (photo != null && photo.Length > 0)
         {
@@ -293,6 +301,8 @@ public class CatalogueController : Controller
         await _db.SaveChangesAsync();
 
         TempData["Success"] = "Product updated successfully.";
+        if (model.Price == null)
+            TempData["PriceWarning"] = "No price set — this item will show 'Price on Request' to mobile app users.";
         return RedirectToAction(nameof(Index));
     }
 

@@ -107,6 +107,12 @@
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Dispatch" asp-action="Index">Dispatch</a>
                             </li>
                         }
+                        @if (viewable.Contains(AppModules.B2BUsers))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="B2BUsers" asp-action="Index">B2B Users</a>
+                            </li>
+                        }
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item dropdown">

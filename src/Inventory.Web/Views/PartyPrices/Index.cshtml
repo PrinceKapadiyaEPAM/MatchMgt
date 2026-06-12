@@ -1,0 +1,93 @@
+@model List<Inventory.Domain.Entities.Catalogue>
+@{
+    ViewData["Title"] = "Party Pricing";
+    var party = (Inventory.Domain.Entities.Party)ViewBag.Party;
+    var overrides = (Dictionary<int, decimal>)ViewBag.Overrides;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="mb-0">Pricing — @party.PartyName</h4>
+        <small class="text-muted">@overrides.Count override(s) configured</small>
+    </div>
+    <div>
+        <button class="btn btn-primary btn-sm me-2" onclick="saveAll()">
+            <i class="bi bi-check-lg"></i> Save All Prices
+        </button>
+        <a asp-controller="Party" asp-action="Index" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Parties
+        </a>
+    </div>
+</div>
+
+<div id="saveAlert" class="alert d-none"></div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-striped table-bordered table-sm mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Catalogue</th>
+                    <th>Fold</th>
+                    <th>Default Price</th>
+                    <th>Override Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int sr = 1; }
+                @foreach (var c in Model)
+                {
+                    overrides.TryGetValue(c.Id, out var op);
+                    <tr>
+                        <td>@(sr++)</td>
+                        <td>@c.Name</td>
+                        <td>@c.Fold</td>
+                        <td class="text-muted">@(c.Price.HasValue ? c.Price.Value.ToString("N2") : "—")</td>
+                        <td>
+                            <input type="number" step="0.01" min="0"
+                                   class="form-control form-control-sm price-input"
+                                   data-catalogue-id="@c.Id"
+                                   value="@(op > 0 ? op.ToString("F2") : "")"
+                                   placeholder="@(c.Price.HasValue ? c.Price.Value.ToString("N2") : "No default")" />
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+async function saveAll() {
+    const partyId = @party.PartyId;
+    const inputs = document.querySelectorAll('.price-input');
+    const prices = [];
+    inputs.forEach(inp => {
+        const val = inp.value.trim();
+        prices.push({
+            catalogueId: parseInt(inp.dataset.catalogueId),
+            overridePrice: val !== '' ? parseFloat(val) : null
+        });
+    });
+
+    const res = await fetch('/PartyPrices/Save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ partyId, prices })
+    });
+    const data = await res.json();
+    const alert = document.getElementById('saveAlert');
+    if (data.success) {
+        alert.className = 'alert alert-success';
+        alert.textContent = 'Prices saved successfully.';
+    } else {
+        alert.className = 'alert alert-danger';
+        alert.textContent = 'Error: ' + (data.error || 'Save failed.');
+    }
+    alert.classList.remove('d-none');
+    setTimeout(() => alert.classList.add('d-none'), 4000);
+}
+</script>
+}

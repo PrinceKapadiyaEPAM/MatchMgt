@@ -19,8 +19,8 @@ public class HomeController(ApplicationDbContext db) : Controller
             .SumAsync(s => s.Quantity) ;
 
         var stockOutSum = await _db.DispatchEntries
-            .Where(d => d.Status != "Cancelled" && d.Qty.HasValue)
-            .SumAsync(d => d.Qty ?? 0);
+            .Where(d => d.Status != "Cancelled" && d.Bale.HasValue)
+            .SumAsync(d => d.Bale ?? 0);
         ViewBag.StockOut = stockOutSum;
 
         ViewBag.TotalBales = await _db.DispatchEntries
@@ -59,9 +59,9 @@ public class HomeController(ApplicationDbContext db) : Controller
 
         var raw = await _db.DispatchEntries
             .Where(d => d.Date >= start && d.Date <= end
-                     && d.Status != "Cancelled" && d.Qty.HasValue)
+                     && d.Status != "Cancelled" && d.Bale.HasValue)
             .GroupBy(d => d.Date)
-            .Select(g => new { Date = g.Key, Qty = g.Sum(x => x.Qty ?? 0) })
+            .Select(g => new { Date = g.Key, Qty = g.Sum(x => x.Bale ?? 0) })
             .ToListAsync();
 
         int days = end.DayNumber - start.DayNumber + 1;
