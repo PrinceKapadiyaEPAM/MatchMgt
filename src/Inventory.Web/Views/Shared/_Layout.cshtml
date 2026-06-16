@@ -77,6 +77,12 @@
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Catalogue" asp-action="Index">Catalogue</a>
                             </li>
                         }
+                        @if (viewable.Contains(AppModules.Category))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Category" asp-action="Index">Categories</a>
+                            </li>
+                        }
                         @if (viewable.Contains(AppModules.Inventory))
                         {
                             <li class="nav-item">

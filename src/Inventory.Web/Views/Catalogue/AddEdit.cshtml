@@ -86,6 +86,26 @@
                     <input type="file" name="pdf" accept="application/pdf" class="form-control" />
                 </div>
 
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Categories</label>
+                    <select name="selectedCategoryIds" id="categorySelect" class="form-select" multiple>
+                        @{
+                            var selectedCatIds = (List<int>)(ViewBag.SelectedCategoryIds ?? new List<int>());
+                        }
+                        @foreach (var cat in (IEnumerable<Inventory.Domain.Entities.Category>)(ViewBag.AllCategories ?? new List<Inventory.Domain.Entities.Category>()))
+                        {
+                            if (selectedCatIds.Contains(cat.Id))
+                            {
+                                <option value="@cat.Id" selected>@cat.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+
             </div>
 
             <hr class="mt-4" />
@@ -99,3 +119,14 @@
         </form>
     </div>
 </div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $('#categorySelect').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Select categories...',
+        width: '100%'
+    });
+</script>
+}

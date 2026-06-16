@@ -75,6 +75,11 @@ public class CatalogueController : Controller
     public async Task<IActionResult> AddEdit(int? id)
     {
         ViewBag.Action = "Create";
+        ViewBag.AllCategories = await _db.Categories
+            .AsNoTracking()
+            .OrderBy(c => c.SortOrder)
+            .ThenBy(c => c.Name)
+            .ToListAsync();
 
         if (id != null)
         {
@@ -84,9 +89,15 @@ public class CatalogueController : Controller
             if (item == null)
                 return NotFound();
 
+            ViewBag.SelectedCategoryIds = await _db.CatalogueCategories
+                .Where(cc => cc.CatalogueId == id)
+                .Select(cc => cc.CategoryId)
+                .ToListAsync();
+
             return View("AddEdit", item);
         }
 
+        ViewBag.SelectedCategoryIds = new List<int>();
         return View("AddEdit", new Catalogue());
     }
     #endregion
@@ -96,7 +107,7 @@ public class CatalogueController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [RequirePermission(AppModules.Catalogue, "Edit")]
-    public async Task<IActionResult> Save(Catalogue model, IFormFile? photo, IFormFile? pdf)
+    public async Task<IActionResult> Save(Catalogue model, IFormFile? photo, IFormFile? pdf, int[]? selectedCategoryIds)
     {
         if (!ModelState.IsValid)
             return View("Edit", model);
@@ -153,6 +164,21 @@ public class CatalogueController : Controller
                 item.PdfFileName = model.PdfFileName;
 
             TempData["Success"] = "Product updated successfully.";
+        }
+
+        await _db.SaveChangesAsync();
+
+        // sync category assignments (full-replace); model.Id is populated by EF after SaveChangesAsync
+        var existing = await _db.CatalogueCategories.Where(cc => cc.CatalogueId == model.Id).ToListAsync();
+        _db.CatalogueCategories.RemoveRange(existing);
+
+        if (selectedCategoryIds?.Length > 0)
+        {
+            _db.CatalogueCategories.AddRange(selectedCategoryIds.Select(cid => new CatalogueCategory
+            {
+                CatalogueId = model.Id,
+                CategoryId = cid
+            }));
         }
 
         await _db.SaveChangesAsync();

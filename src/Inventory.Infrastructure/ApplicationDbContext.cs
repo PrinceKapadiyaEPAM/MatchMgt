@@ -22,6 +22,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
     public DbSet<B2BUser> B2BUsers => Set<B2BUser>();
     public DbSet<CataloguePartyPrice> CataloguePartyPrices => Set<CataloguePartyPrice>();
+    public DbSet<Category> Categories => Set<Category>();
+    public DbSet<CatalogueCategory> CatalogueCategories => Set<CatalogueCategory>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -38,5 +40,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<CataloguePartyPrice>()
             .HasIndex(p => new { p.CatalogueId, p.PartyId })
             .IsUnique();
+
+        builder.Entity<CatalogueCategory>()
+            .HasKey(cc => new { cc.CatalogueId, cc.CategoryId });
     }
 }

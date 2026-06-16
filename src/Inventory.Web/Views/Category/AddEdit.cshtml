@@ -1,0 +1,67 @@
+@using Inventory.Domain.Entities
+@model Category
+@{
+    ViewData["Title"] = ViewBag.Action + " Category";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var isEdit = (string)ViewBag.Action == "Edit";
+}
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="bi bi-tags me-2 text-muted"></i>@ViewBag.Action Category
+        </h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="Save" method="post" enctype="multipart/form-data" autocomplete="off">
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(x => x.Id)
+            @Html.HiddenFor(x => x.ImageFileName)
+
+            <div class="row g-3">
+
+                <div class="col-md-8">
+                    <label class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
+                    <input asp-for="Name" class="form-control" placeholder="Enter category name" />
+                    <span asp-validation-for="Name" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Sort Order</label>
+                    <input asp-for="SortOrder" type="number" min="0" class="form-control" placeholder="0" />
+                    <div class="form-text">Lower numbers appear first</div>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Description</label>
+                    <textarea asp-for="Description" class="form-control" rows="3"
+                              placeholder="Optional description"></textarea>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Image</label>
+                    @if (Model != null && !string.IsNullOrEmpty(Model.ImageFileName))
+                    {
+                        <div class="mb-2">
+                            <img src="~/uploads/categories/@Model.ImageFileName"
+                                 style="max-height:100px;" class="img-thumbnail rounded" />
+                        </div>
+                    }
+                    <input type="file" name="image" accept=".jpg,.jpeg,.png" class="form-control" />
+                    <div class="form-text">JPG or PNG, max 3 MB</div>
+                    <span class="text-danger small">@ViewData.ModelState["image"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+                </div>
+
+            </div>
+
+            <hr class="mt-4" />
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="bi bi-check-lg me-1"></i>@(isEdit ? "Update" : "Save")
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary px-4">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

@@ -14,4 +14,6 @@ public class Catalogue
 
     public ICollection<InventoryTransaction> Transactions { get; set; }
         = new List<InventoryTransaction>();
+
+    public ICollection<CatalogueCategory> CatalogueCategories { get; set; } = new List<CatalogueCategory>();
 }
