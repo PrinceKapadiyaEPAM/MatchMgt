@@ -6,7 +6,7 @@ namespace Inventory.Domain.ViewModels;
 
 public class CompanyProfileVM
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
     [Required(ErrorMessage = "Company name is required")]
     public string Name { get; set; } = string.Empty;
@@ -36,4 +36,8 @@ public class CompanyProfileVM
     public string? LetterheadHtml { get; set; }
 
     public string? ThemeColor { get; set; }
+
+    // New fields
+    public string? Tagline { get; set; }
+    public string? BrandmarkText { get; set; }
 }

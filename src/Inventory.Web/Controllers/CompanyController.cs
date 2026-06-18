@@ -42,6 +42,8 @@ public class CompanyController : Controller
             CIN = profile.CIN,
             LetterheadHtml = profile.LetterheadHtml,
             ThemeColor = profile.ThemeColor,
+            Tagline = profile.Tagline,
+            BrandmarkText = profile.BrandmarkText,
         };
 
         return View(model);
@@ -80,10 +82,11 @@ public class CompanyController : Controller
             model.LogoFileName = fileName;
         }
 
-        if (model.Id == 0)
+        if (model.Id == Guid.Empty)
         {
             var profile = new CompanyProfile
             {
+                Id = Guid.NewGuid(),
                 Name = model.Name,
                 LogoFileName = model.LogoFileName,
                 Address = model.Address,
@@ -99,6 +102,8 @@ public class CompanyController : Controller
                 CIN = model.CIN,
                 LetterheadHtml = model.LetterheadHtml,
                 ThemeColor = model.ThemeColor,
+                Tagline = model.Tagline,
+                BrandmarkText = model.BrandmarkText,
             };
             await _db.CompanyProfile.AddAsync(profile);
         }
@@ -121,6 +126,8 @@ public class CompanyController : Controller
             profile.CIN = model.CIN;
             profile.LetterheadHtml = model.LetterheadHtml;
             profile.ThemeColor = model.ThemeColor;
+            profile.Tagline = model.Tagline;
+            profile.BrandmarkText = model.BrandmarkText;
 
             if (!string.IsNullOrEmpty(model.LogoFileName))
                 profile.LogoFileName = model.LogoFileName;

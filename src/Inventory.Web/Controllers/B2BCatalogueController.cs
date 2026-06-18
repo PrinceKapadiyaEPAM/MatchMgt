@@ -1,7 +1,7 @@
-using Inventory.Infrastructure;
 using Inventory.Domain.Entities;
+using Inventory.Infrastructure;
 using Inventory.Web.Helpers;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,14 +9,36 @@ namespace Inventory.Web.Controllers;
 
 [ApiController]
 [Route("api/b2b/catalogue")]
-[Authorize(AuthenticationSchemes = "B2B")]
+// NOTE: intentionally not decorated with [Authorize] so this controller supports
+// both anonymous and authenticated (B2B) requests. Authentication middleware
+// may optionally populate HttpContext.Items["B2BUser"].
 public class B2BCatalogueController : ControllerBase
 {
     private readonly ApplicationDbContext _db;
 
     public B2BCatalogueController(ApplicationDbContext db) => _db = db;
 
-    private B2BUser CurrentUser => (B2BUser)HttpContext.Items["B2BUser"]!;
+    // Try to resolve the currently authenticated B2B user if present in HttpContext.Items
+    private async Task<B2BUser?> TryGetCurrentUserAsync()
+    {
+        // First check if already in Items (from prior auth)
+        if (HttpContext?.Items != null && HttpContext.Items.TryGetValue("B2BUser", out var obj) && obj is B2BUser bu)
+            return bu;
+
+        // If not already authenticated, manually trigger B2B authentication
+        if (HttpContext != null)
+        {
+            var result = await HttpContext.AuthenticateAsync("B2B");
+            if (result.Succeeded && result.Principal != null)
+            {
+                // The OnTokenValidated event should have populated HttpContext.Items["B2BUser"]
+                if (HttpContext.Items.TryGetValue("B2BUser", out var authenticatedUser) && authenticatedUser is B2BUser bbu)
+                    return bbu;
+            }
+        }
+
+        return null;
+    }
 
     private decimal? ResolvePrice(Dictionary<int, decimal> partyPrices, int catalogueId, decimal? defaultPrice)
     {
@@ -26,18 +48,28 @@ public class B2BCatalogueController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> List([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? search = null)
+    public async Task<IActionResult> List([FromQuery] int? categoryId = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? search = null)
     {
-        pageSize = Math.Min(pageSize, 100);
-        var user = CurrentUser;
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
 
-        if (!user.ShowCatalogue)
+        var user = await TryGetCurrentUserAsync();
+
+        // If an authenticated user exists and they are not allowed to view catalogue, forbid.
+        if (user != null && !user.ShowCatalogue)
             return Forbid();
+
+        // For anonymous callers, allow catalogue listing but do not expose party-specific behavior.
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
         var query = _db.Catalogues
             .AsNoTracking()
             .Where(c => !c.IsDeleted);
+
+        if (categoryId.HasValue)
+        {
+            query = query.Where(c => c.CatalogueCategories.Any(cc => cc.CategoryId == categoryId.Value));
+        }
 
         if (!string.IsNullOrWhiteSpace(search))
             query = query.Where(c => EF.Functions.ILike(c.Name, $"%{search}%"));
@@ -73,13 +105,16 @@ public class B2BCatalogueController : ControllerBase
             .Where(t => t.TransactionType == TransactionType.Order)
             .ToDictionary(t => t.CatalogueId, t => t.Total);
 
-        // Batch-load party price overrides for the current user
-        var partyPrices = user.PartyId.HasValue
+        // If an authenticated party user exists, load their overrides; otherwise use empty map.
+        var partyPrices = user?.PartyId.HasValue == true
             ? await _db.CataloguePartyPrices
                 .AsNoTracking()
-                .Where(p => p.PartyId == user.PartyId.Value && catalogueIds.Contains(p.CatalogueId))
+                .Where(p => p.PartyId == user!.PartyId!.Value && catalogueIds.Contains(p.CatalogueId))
                 .ToDictionaryAsync(p => p.CatalogueId, p => p.OverridePrice)
             : new Dictionary<int, decimal>();
+
+        var showPrices = user?.ShowPrices ?? true;
+        var showStock = user?.ShowStock ?? true;
 
         var items = catalogues.Select(c =>
         {
@@ -99,9 +134,10 @@ public class B2BCatalogueController : ControllerBase
                 c.Name,
                 c.Fold,
                 photoUrl = c.PhotoFileName != null ? $"/uploads/catalogues/{c.PhotoFileName}" : null,
-                price = user.ShowPrices ? ResolvePrice(partyPrices, c.Id, c.Price) : (decimal?)null,
-                stockQty  = user.ShowStock ? (int?)stockQty : null,
-                stockStatus = user.ShowStock ? stockStatus : null
+                // If an authenticated user exists with party prices, resolve override; otherwise return catalogue price.
+                price = showPrices ? ResolvePrice(partyPrices, c.Id, c.Price) : (decimal?)null,
+                stockQty = showStock ? (int?)stockQty : null,
+                stockStatus = showStock ? stockStatus : null
             };
         }).ToList();
 
@@ -118,9 +154,9 @@ public class B2BCatalogueController : ControllerBase
     [HttpGet("{id:int}")]
     public async Task<IActionResult> Detail(int id)
     {
-        var user = CurrentUser;
+        var user = await TryGetCurrentUserAsync();
 
-        if (!user.ShowCatalogue)
+        if (user != null && !user.ShowCatalogue)
             return Forbid();
 
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -138,8 +174,9 @@ public class B2BCatalogueController : ControllerBase
             c.RestockDate,
             today);
 
+        // Resolve price: if authenticated user with party override, use that; otherwise use catalogue price.
         decimal? price = c.Price;
-        if (user.PartyId.HasValue)
+        if (user?.PartyId.HasValue == true)
         {
             var overridePrice = await _db.CataloguePartyPrices
                 .AsNoTracking()
@@ -149,6 +186,9 @@ public class B2BCatalogueController : ControllerBase
             if (overridePrice.HasValue) price = overridePrice;
         }
 
+        var showPrices = user?.ShowPrices ?? true;
+        var showStock = user?.ShowStock ?? true;
+
         return Ok(new
         {
             c.Id,
@@ -157,10 +197,10 @@ public class B2BCatalogueController : ControllerBase
             c.Remark,
             photoUrl = c.PhotoFileName != null ? $"/uploads/catalogues/{c.PhotoFileName}" : null,
             pdfUrl = c.PdfFileName != null ? $"/uploads/catalogues/{c.PdfFileName}" : null,
-            price     = user.ShowPrices ? price : null,
-            stockQty  = user.ShowStock  ? (int?)stockQty : null,
-            stockStatus = user.ShowStock ? stockStatus : null,
-            restockDate = user.ShowStock ? c.RestockDate?.ToString("yyyy-MM-dd") : null
+            price = showPrices ? price : null,
+            stockQty = showStock ? (int?)stockQty : null,
+            stockStatus = showStock ? stockStatus : null,
+            restockDate = showStock ? c.RestockDate?.ToString("yyyy-MM-dd") : null
         });
     }
 }

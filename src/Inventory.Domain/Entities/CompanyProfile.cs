@@ -2,7 +2,7 @@ namespace Inventory.Domain.Entities;
 
 public class CompanyProfile
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? LogoFileName { get; set; }
     public string? Address { get; set; }
@@ -18,4 +18,8 @@ public class CompanyProfile
     public string? CIN { get; set; }
     public string? LetterheadHtml { get; set; }
     public string? ThemeColor { get; set; }
+
+    // New fields requested
+    public string? Tagline { get; set; }
+    public string? BrandmarkText { get; set; }
 }

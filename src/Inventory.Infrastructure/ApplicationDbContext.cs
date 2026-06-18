@@ -43,5 +43,31 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
         builder.Entity<CatalogueCategory>()
             .HasKey(cc => new { cc.CatalogueId, cc.CategoryId });
+
+        // Configure CompanyProfile entity to use uuid Id and new properties
+        builder.Entity<CompanyProfile>(b =>
+        {
+            b.HasKey(c => c.Id);
+            b.Property(c => c.Id).HasColumnType("uuid");
+            b.Property(c => c.Name).IsRequired();
+            b.Property(c => c.LogoFileName);
+            b.Property(c => c.Address);
+            b.Property(c => c.City);
+            b.Property(c => c.State);
+            b.Property(c => c.Pincode);
+            b.Property(c => c.Phone);
+            b.Property(c => c.Mobile);
+            b.Property(c => c.Email);
+            b.Property(c => c.Website);
+            b.Property(c => c.GSTIN);
+            b.Property(c => c.PAN);
+            b.Property(c => c.CIN);
+            b.Property(c => c.LetterheadHtml).HasColumnType("text");
+            b.Property(c => c.ThemeColor);
+
+            // New props
+            b.Property(c => c.Tagline).HasMaxLength(255);
+            b.Property(c => c.BrandmarkText).HasMaxLength(25);
+        });
     }
 }

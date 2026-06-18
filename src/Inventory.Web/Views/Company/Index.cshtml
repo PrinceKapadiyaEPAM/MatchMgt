@@ -35,6 +35,11 @@
                     </div>
 
                     <div class="mb-3">
+                        <label asp-for="Tagline" class="form-label">Tagline</label>
+                        <input asp-for="Tagline" class="form-control" maxlength="255" placeholder="Short company tagline" />
+                    </div>
+
+                    <div class="mb-3">
                         <label asp-for="Logo" class="form-label">Logo</label>
                         @if (!string.IsNullOrEmpty(Model.LogoFileName))
                         {
@@ -122,6 +127,11 @@
                                    value="@(Model.ThemeColor ?? "#c0544b")" placeholder="#c0544b" />
                         </div>
                         <div class="form-text">Used for text and borders on all print views.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="BrandmarkText" class="form-label">Brandmark Text</label>
+                        <input asp-for="BrandmarkText" class="form-control" maxlength="25" placeholder="Short brand text (max 25 chars)" />
                     </div>
 
                 </div>
