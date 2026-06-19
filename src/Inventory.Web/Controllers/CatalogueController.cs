@@ -1,4 +1,5 @@
 ﻿namespace Inventory.Web.Controllers;
+
 using Inventory.Domain.Constants;
 using Inventory.Domain.Entities;
 using Inventory.Domain.ViewModels;
@@ -156,6 +157,8 @@ public class CatalogueController : Controller
             item.Price = model.Price;
             item.Remark = model.Remark;
             item.RestockDate = model.RestockDate;
+            item.ShortDescription = model.ShortDescription;
+            item.LongDescription = model.LongDescription;
 
             if (!string.IsNullOrEmpty(model.PhotoFileName))
                 item.PhotoFileName = model.PhotoFileName;
@@ -199,9 +202,9 @@ public class CatalogueController : Controller
         {
             var entry = new InventoryTransaction
             {
-                CatalogueId     = req.CatalogueId,
+                CatalogueId = req.CatalogueId,
                 TransactionType = TransactionType.Stock,
-                Quantity        = req.Quantity,
+                Quantity = req.Quantity,
                 TransactionDate = DateTime.SpecifyKind(DateTime.Parse(req.Date), DateTimeKind.Utc)
             };
             _db.InventoryTransactions.Add(entry);

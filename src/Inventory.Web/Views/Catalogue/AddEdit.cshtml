@@ -28,8 +28,7 @@
             @Html.HiddenFor(x => x.PhotoFileName)
 
             <div class="row g-3">
-
-                                <div class="col-md-8">
+                <div class="col-md-8">
                     <label class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
                     <input asp-for="Name" class="form-control" placeholder="Enter catalogue name" />
                     <span asp-validation-for="Name" class="text-danger small"></span>
@@ -40,7 +39,7 @@
                     <input asp-for="Fold" class="form-control" placeholder="e.g. 40×40" />
                 </div>
 
-                                <div class="col-md-4">
+                <div class="col-md-4">
                     <label class="form-label fw-semibold">Price</label>
                     <div class="input-group">
                         <span class="input-group-text">₹</span>
@@ -54,13 +53,13 @@
                     <input asp-for="RestockDate" type="date" class="form-control" />
                     <div class="form-text">Shown on mobile when out of stock</div>
                 </div>
-
-                                <div class="col-12">
+              
+                <div class="col-12">
                     <label class="form-label fw-semibold">Remark</label>
                     <textarea asp-for="Remark" class="form-control" rows="3" placeholder="Enter remarks"></textarea>
                 </div>
 
-                                <div class="col-md-6">
+                <div class="col-md-6">
                     <label class="form-label fw-semibold">Photo</label>
                     @if (Model != null && !string.IsNullOrEmpty(Model.PhotoFileName))
                     {
@@ -78,7 +77,7 @@
                     {
                         <div class="mb-2">
                             <a class="btn btn-outline-secondary btn-sm" target="_blank"
-                               href="~/uploads/catalogues/@Model.PdfFileName">
+                                   href="~/uploads/catalogues/@Model.PdfFileName">
                                 <i class="bi bi-file-earmark-pdf me-1"></i>View current document
                             </a>
                         </div>
@@ -105,7 +104,16 @@
                         }
                     </select>
                 </div>
-
+                 
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Short Description</label>
+                    <textarea asp-for="ShortDescription" class="form-control" rows="2" placeholder="Enter short description"></textarea>
+                </div>
+                <label class="form-label fw-semibold">Long Description</label>
+               
+                <div class="card-body d-flex flex-column">
+                    <textarea asp-for="LongDescription" id="LongDescription"></textarea>
+                </div>
             </div>
 
             <hr class="mt-4" />
@@ -121,12 +129,25 @@
 </div>
 
 @section Scripts {
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script>
-    $('#categorySelect').select2({
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js"></script>
+    <script>
+        tinymce.init({
+        selector: '#LongDescription',
+        base_url: 'https://cdn.jsdelivr.net/npm/tinymce@7',
+        suffix: '.min',
+        height: 440,
+        menubar: false,
+        plugins: 'lists link image table code',
+        toolbar: 'undo redo | blocks fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright | bullist numlist | link image table | code',
+        promotion: false,
+        branding: false
+        });
+
+        $('#categorySelect').select2({
         theme: 'bootstrap-5',
         placeholder: 'Select categories...',
         width: '100%'
-    });
-</script>
+        });
+    </script>
 }

@@ -132,6 +132,7 @@ public class B2BCatalogueController : ControllerBase
             {
                 c.Id,
                 c.Name,
+                c.ShortDescription,
                 c.Fold,
                 photoUrl = c.PhotoFileName != null ? $"/uploads/catalogues/{c.PhotoFileName}" : null,
                 // If an authenticated user exists with party prices, resolve override; otherwise return catalogue price.
@@ -163,9 +164,8 @@ public class B2BCatalogueController : ControllerBase
 
         var c = await _db.Catalogues
             .AsNoTracking()
+            .Include(d => d.CatalogueCategories)
             .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
-
-        if (c == null) return NotFound(new { error = "Catalogue item not found." });
 
         var (stockQty, stockStatus) = StockStatusHelper.Compute(
             c.Id,
@@ -195,6 +195,9 @@ public class B2BCatalogueController : ControllerBase
             c.Name,
             c.Fold,
             c.Remark,
+            c.ShortDescription,
+            c.LongDescription,
+            categoryId = c.CatalogueCategories.FirstOrDefault()?.CategoryId,
             photoUrl = c.PhotoFileName != null ? $"/uploads/catalogues/{c.PhotoFileName}" : null,
             pdfUrl = c.PdfFileName != null ? $"/uploads/catalogues/{c.PdfFileName}" : null,
             price = showPrices ? price : null,

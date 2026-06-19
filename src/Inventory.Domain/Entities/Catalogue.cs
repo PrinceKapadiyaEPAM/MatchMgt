@@ -7,6 +7,8 @@ public class Catalogue
     public string? Fold { get; set; }
     public decimal? Price { get; set; }
     public string? Remark { get; set; }
+    public string? ShortDescription { get; set; }
+    public string? LongDescription { get; set; }
     public string? PhotoFileName { get; set; }
     public string? PdfFileName { get; set; }
     public bool IsDeleted { get; set; }
